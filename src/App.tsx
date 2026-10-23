@@ -36,6 +36,10 @@ import {
   GatePassView,
 } from './components/GatePassView';
 import {
+  ExecutiveDashboardView,
+} from './components/ExecutiveDashboardView';
+import { DEMO_USERS } from './services/mockData';
+import {
   Ticket,
   UserProfile,
   TicketStatus,
@@ -80,7 +84,18 @@ export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<UserProfile>(() =>
     dataStore.getCurrentUser()
   );
-  const [activeTab, setActiveTab] = useState<string>('feed');
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true';
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('sidebar_collapsed', String(next));
+      return next;
+    });
+  };
   const [tickets, setTickets] = useState<Ticket[]>(() => dataStore.getTickets());
   const [communities, setCommunities] = useState<Community[]>(() =>
     dataStore.getCommunities()
@@ -484,8 +499,8 @@ export const App: React.FC = () => {
       />
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex gap-6 pt-5">
-        {/* Left Sidebar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex gap-5 sm:gap-6 pt-5">
+        {/* Left Sidebar (Collapsible Dark Burgundy Rail/Panel) */}
         <Sidebar
           activeTab={activeTab}
           onSelectTab={(tab) => setActiveTab(tab)}
@@ -495,10 +510,36 @@ export const App: React.FC = () => {
           myIssuesCount={myIssuesCount}
           onApplyGatePass={() => setShowGatePassModal(true)}
           gatePassCount={gatePasses.filter((g) => g.status === 'Pending Warden Approval' || g.status === 'Approved').length}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapse}
         />
 
         {/* Dynamic Main Content Area */}
         <main className="flex-1 min-w-0 pb-12">
+          {/* Tab 0: Executive Overview Dashboard (Matching Image UI Layout) */}
+          {activeTab === 'overview' && (
+            <ExecutiveDashboardView
+              tickets={tickets}
+              gatePasses={gatePasses}
+              currentUser={currentUser}
+              onApplyGatePass={() => setShowGatePassModal(true)}
+              onReportConcern={() => setShowRaiseModal(true)}
+              onSelectTicket={(t) => setSelectedTicket(t)}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              openIssuesCount={openCount}
+              gatePassCount={gatePasses.filter((g) => g.status === 'Pending Warden Approval' || g.status === 'Approved').length}
+              onOpenSettings={() => {
+                const nextUser = currentUser.role === 'Student'
+                  ? DEMO_USERS[1]
+                  : currentUser.role === 'Campus Staff'
+                  ? DEMO_USERS[2]
+                  : DEMO_USERS[0];
+                setCurrentUser(nextUser);
+                dataStore.setCurrentUser(nextUser);
+                showToast(`Switched active profile to ${nextUser.name} (${nextUser.role})`, 'info');
+              }}
+            />
+          )}
           {/* Tab 1 & Tab 2: Issue Feed / My Issues */}
           {(activeTab === 'feed' || activeTab === 'my-issues') && (
             <div className="space-y-4">

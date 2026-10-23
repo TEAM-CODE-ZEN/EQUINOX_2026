@@ -69,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand & Tagline with Apple-grade polish */}
         <div className="flex items-center gap-3.5">
-          <div className="relative group cursor-pointer" onClick={() => onNavigateTab('feed')}>
+          <div className="relative group cursor-pointer" onClick={() => onNavigateTab('overview')}>
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-burgundy-800 flex items-center justify-center text-latte-50 shadow-[0_4px_12px_rgba(37,3,9,0.3)] ring-1 ring-burgundy-700/40 transition-transform group-hover:scale-105 active:scale-95 duration-200">
               <ShieldCheck className="w-5 h-5 text-mocha-300 group-hover:text-latte-100 transition-colors" />
             </div>
