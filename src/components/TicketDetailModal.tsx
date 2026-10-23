@@ -26,8 +26,9 @@ import {
 import {
   getStatusBadgeStyle,
   getPriorityBadgeStyle,
+  getCategoryTheme,
   formatRelativeTime,
-} from './TicketCard';
+} from '../utils/formatters';
 import { DEMO_USERS } from '../services/mockData';
 
 interface TicketDetailModalProps {
@@ -67,7 +68,11 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     currentUser.role === 'Campus Staff' || currentUser.role === 'Admin';
   const hasEndorsed = ticket.endorsedUserIds?.includes(currentUser.uid);
 
-  // Filter comments: students do NOT see internal notes!
+  const statusBadge = getStatusBadgeStyle(ticket.status);
+  const priorityBadge = getPriorityBadgeStyle(ticket.priority);
+  const categoryTheme = getCategoryTheme(ticket.category);
+
+  // Filter comments: students do NOT see internal notes
   const visibleComments = comments.filter(
     (c) => !c.isInternal || isStaffOrAdmin
   );
@@ -97,121 +102,119 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-elevated border border-slate-200 overflow-hidden my-8 max-h-[90vh] flex flex-col text-left">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto animate-sonner">
+      <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(37,3,9,0.3)] border border-mocha-200/90 overflow-hidden my-6 max-h-[92vh] flex flex-col text-left">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-slate-100 bg-slate-50/70">
-          <div>
-            <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <span className="font-mono text-xs font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">
+        <div className="flex items-start justify-between p-5 sm:p-6 border-b border-mocha-100 bg-mocha-50/80">
+          <div className="flex-1 min-w-0 pr-4">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="font-mono text-xs font-bold text-mocha-800 bg-white px-2.5 py-0.5 rounded-lg border border-mocha-200/80 shadow-subtle">
                 {ticket.ticketNumber}
               </span>
               <span
-                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getStatusBadgeStyle(
-                  ticket.status
-                )}`}
+                className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border ${statusBadge.bg}`}
               >
-                {ticket.status}
+                <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`}></span>
+                <span>{ticket.status}</span>
               </span>
               <span
-                className={`text-xs font-medium px-2 py-0.5 rounded border ${getPriorityBadgeStyle(
-                  ticket.priority
-                )}`}
+                className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-lg border ${priorityBadge.bg}`}
               >
-                {ticket.priority} Priority
+                <span className={`w-1.5 h-1.5 rounded-full ${priorityBadge.dot}`}></span>
+                <span>{priorityBadge.label}</span>
               </span>
-              <span className="text-xs text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded font-medium">
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg border ${categoryTheme.bg}`}>
                 {ticket.category}
               </span>
             </div>
-            <h2 className="text-lg font-bold text-slate-900 leading-snug">
+            <h2 className="text-lg sm:text-xl font-extrabold text-burgundy-950 tracking-tight leading-snug">
               {ticket.title}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition-colors"
+            className="p-2 text-mocha-400 hover:text-mocha-700 rounded-xl hover:bg-mocha-200/60 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-slate-200 bg-white px-5 gap-6 text-xs font-semibold">
+        <div className="flex border-b border-mocha-200/80 bg-white px-5 sm:px-6 gap-6 text-xs font-bold">
           <button
             onClick={() => setActiveTab('details')}
-            className={`py-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`py-3.5 border-b-2 flex items-center gap-2 transition-all ${
               activeTab === 'details'
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-burgundy-900 text-burgundy-950'
+                : 'border-transparent text-mocha-600 hover:text-burgundy-900'
             }`}
           >
             <FileText className="w-4 h-4" />
-            Issue Overview
+            <span>Issue Overview</span>
           </button>
           <button
             onClick={() => setActiveTab('comments')}
-            className={`py-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`py-3.5 border-b-2 flex items-center gap-2 transition-all ${
               activeTab === 'comments'
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-burgundy-900 text-burgundy-950'
+                : 'border-transparent text-mocha-600 hover:text-burgundy-900'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            Comments ({visibleComments.length})
+            <span>Discussion ({visibleComments.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`py-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`py-3.5 border-b-2 flex items-center gap-2 transition-all ${
               activeTab === 'history'
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-burgundy-900 text-burgundy-950'
+                : 'border-transparent text-mocha-600 hover:text-burgundy-900'
             }`}
           >
             <History className="w-4 h-4" />
-            Audit History ({history.length})
+            <span>Audit History ({history.length})</span>
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 overflow-y-auto flex-1 space-y-5">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
           {activeTab === 'details' && (
             <div className="space-y-5">
               {/* Key Meta Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 text-xs">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-slate-400" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-mocha-50/60 rounded-2xl border border-mocha-200/80 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-4 h-4 text-mocha-500" />
                   <div>
-                    <span className="text-slate-500">Location:</span>{' '}
-                    <span className="font-semibold text-slate-800">{ticket.location}</span>
+                    <span className="text-mocha-500 font-medium">Location:</span>{' '}
+                    <span className="font-bold text-slate-800">{ticket.location}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-slate-400" />
+                <div className="flex items-center gap-2.5">
+                  <User className="w-4 h-4 text-mocha-500" />
                   <div>
-                    <span className="text-slate-500">Reported By:</span>{' '}
-                    <span className="font-semibold text-slate-800">
+                    <span className="text-mocha-500 font-medium">Reported By:</span>{' '}
+                    <span className="font-bold text-slate-800">
                       {ticket.isSensitive ? 'Confidential Reporter' : ticket.reporterName}
                     </span>
                     {ticket.reporterRoom && (
-                      <span className="text-slate-500"> ({ticket.reporterRoom})</span>
+                      <span className="text-mocha-600"> ({ticket.reporterRoom})</span>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-400" />
+                <div className="flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 text-mocha-500" />
                   <div>
-                    <span className="text-slate-500">Created:</span>{' '}
-                    <span className="font-semibold text-slate-800">
+                    <span className="text-mocha-500 font-medium">Timestamp:</span>{' '}
+                    <span className="font-mono text-mocha-800">
                       {new Date(ticket.createdAt).toLocaleString()}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-teal-600" />
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-burgundy-700" />
                   <div>
-                    <span className="text-slate-500">Assigned Staff:</span>{' '}
-                    <span className="font-semibold text-slate-800">
+                    <span className="text-mocha-500 font-medium">Assigned Staff:</span>{' '}
+                    <span className="font-bold text-burgundy-950">
                       {ticket.assignedStaffName || 'Unassigned'}
                     </span>
                   </div>
@@ -219,72 +222,73 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               </div>
 
               {/* Endorsements Control */}
-              <div className="flex items-center justify-between p-3.5 bg-teal-50/60 rounded-xl border border-teal-200/70">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-mocha-50 via-latte-100 to-burgundy-50/40 rounded-2xl border border-mocha-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-burgundy-900 text-latte-50 flex items-center justify-center font-extrabold text-sm shadow-sm font-mono">
                     +{ticket.affectedCount}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-teal-900">
-                      {ticket.affectedCount} {ticket.affectedCount === 1 ? 'Student Affected' : 'Students Affected'}
+                    <p className="text-xs font-bold text-burgundy-950">
+                      {ticket.affectedCount} {ticket.affectedCount === 1 ? 'Student Endorsement' : 'Student Endorsements'}
                     </p>
-                    <p className="text-[11px] text-teal-700">
-                      Shared issues are prioritized according to endorsement counts.
+                    <p className="text-[11px] text-mocha-700 font-medium">
+                      Facilities staff prioritizes tickets with higher community affected counts.
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => onToggleEndorse(ticket.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border active:scale-95 ${
                     hasEndorsed
-                      ? 'bg-teal-600 text-white border-teal-700 shadow-sm'
-                      : 'bg-white hover:bg-teal-100 text-teal-800 border-teal-300'
+                      ? 'bg-burgundy-900 text-latte-50 border-burgundy-900 shadow-sm'
+                      : 'bg-white hover:bg-mocha-50 text-mocha-900 border-mocha-300'
                   }`}
                 >
-                  <ThumbsUp className="w-3.5 h-3.5 inline mr-1" />
-                  {hasEndorsed ? 'Endorsed (+1)' : 'I Have This Issue Too'}
+                  <ThumbsUp className={`w-3.5 h-3.5 inline mr-1.5 ${hasEndorsed ? 'text-mocha-300 fill-mocha-300' : 'text-mocha-600'}`} />
+                  {hasEndorsed ? 'Endorsed (+1)' : 'I Experience This Too'}
                 </button>
               </div>
 
               {/* Original Complaint */}
               <div>
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
-                  Student Complaint Description
+                <h4 className="text-xs font-bold text-mocha-700 uppercase tracking-wider mb-2 font-mono">
+                  Complaint Description
                 </h4>
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                <div className="p-4 bg-white rounded-2xl border border-mocha-200/90 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap shadow-subtle">
                   {ticket.originalComplaint}
                 </div>
               </div>
 
               {/* AI Triage & Evidence Card */}
               {ticket.aiMetadata && (
-                <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2.5">
+                <div className="p-4 sm:p-5 bg-gradient-to-br from-mocha-50/90 to-latte-100/70 rounded-2xl border border-mocha-200/90 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-indigo-600" />
-                      <span className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
-                        AI Triage Analysis ({ticket.aiMetadata.model})
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-burgundy-700" />
+                      <span className="text-xs font-bold text-burgundy-950 uppercase tracking-wider font-mono">
+                        Gemini AI Triage Assessment ({ticket.aiMetadata.model})
                       </span>
                     </div>
-                    <span className="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded-full">
-                      Automated Assessment
+                    <span className="text-[10px] bg-burgundy-100 text-burgundy-950 font-extrabold px-2.5 py-0.5 rounded-full font-mono border border-burgundy-200/60">
+                      Automated Pipeline
                     </span>
                   </div>
 
-                  <p className="text-xs text-indigo-900 leading-relaxed">
-                    <span className="font-semibold">Priority Rationale:</span> {ticket.priorityReason || 'Assessed based on student welfare and campus safety.'}
+                  <p className="text-xs text-mocha-900 leading-relaxed font-medium">
+                    <span className="font-bold text-burgundy-950">Priority Justification:</span>{' '}
+                    {ticket.priorityReason || 'Assessed based on student facility disruption and safety urgency.'}
                   </p>
 
                   {ticket.aiMetadata.visibleEvidence && (
-                    <div className="p-2.5 bg-white/80 rounded-lg border border-indigo-100 text-xs text-indigo-900">
-                      <span className="font-semibold">Visual Evidence Observed:</span>{' '}
+                    <div className="p-3 bg-white/90 rounded-xl border border-mocha-200 text-xs text-mocha-900">
+                      <span className="font-bold text-burgundy-900">Physical Evidence Extracted:</span>{' '}
                       {ticket.aiMetadata.visibleEvidence}
                     </div>
                   )}
 
                   {ticket.aiMetadata.suggestedAction && (
-                    <div className="text-xs text-indigo-800">
-                      <span className="font-semibold">Suggested Dispatch Action:</span>{' '}
+                    <div className="text-xs text-mocha-800 font-medium">
+                      <span className="font-bold text-burgundy-900">Recommended Routing:</span>{' '}
                       {ticket.aiMetadata.suggestedAction}
                     </div>
                   )}
@@ -294,16 +298,19 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               {/* Photo Evidence */}
               {ticket.photoUrls && ticket.photoUrls.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+                  <h4 className="text-xs font-bold text-mocha-700 uppercase tracking-wider mb-2 font-mono">
                     Attached Photographs
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {ticket.photoUrls.map((url, idx) => (
-                      <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-h-64">
+                      <div
+                        key={idx}
+                        className="rounded-2xl overflow-hidden border border-mocha-200 bg-mocha-50 max-h-64 shadow-subtle group"
+                      >
                         <img
                           src={url}
                           alt="Evidence photo"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     ))}
@@ -313,36 +320,36 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
               {/* Resolution Notes (If resolved) */}
               {ticket.status === 'Resolved' && (
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="p-4 sm:p-5 bg-emerald-50/90 rounded-2xl border border-emerald-200">
+                  <div className="flex items-center gap-2 mb-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                    <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      Official Resolution Notes
+                    <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wider font-mono">
+                      Official Work Completion Notes
                     </h4>
                   </div>
-                  <p className="text-xs text-emerald-800 whitespace-pre-wrap">
-                    {ticket.resolutionNotes || 'Marked as resolved by campus staff.'}
+                  <p className="text-xs text-emerald-900 whitespace-pre-wrap leading-relaxed font-medium">
+                    {ticket.resolutionNotes || 'Marked as resolved by campus facilities team.'}
                   </p>
                 </div>
               )}
 
-              {/* Staff Management Toolbar (Authorized Staff/Admin only) */}
+              {/* Staff Management Console */}
               {isStaffOrAdmin && (
-                <div className="p-4 bg-slate-900 text-white rounded-xl space-y-3">
+                <div className="p-5 bg-burgundy-950 text-latte-50 rounded-2xl shadow-elevated border border-burgundy-800 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold tracking-wider uppercase text-slate-300">
-                      Staff Operational Actions
+                    <span className="text-xs font-extrabold tracking-wider uppercase text-mocha-300 font-mono">
+                      Staff Operational Console
                     </span>
-                    <span className="text-[10px] bg-slate-800 text-teal-400 px-2 py-0.5 rounded font-mono">
-                      Role Authorized
+                    <span className="text-[10px] bg-burgundy-900 text-mocha-200 px-2 py-0.5 rounded font-mono font-bold border border-burgundy-700">
+                      Staff Authorized
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Assign Staff */}
                     <div>
-                      <label className="block text-[11px] text-slate-400 mb-1">
-                        Assign Staff Member:
+                      <label className="block text-[11px] text-mocha-300 font-medium mb-1.5">
+                        Assign Maintenance Personnel:
                       </label>
                       <select
                         value={ticket.assignedToStaffUid || ''}
@@ -350,9 +357,9 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                           const staff = eligibleStaff.find((s) => s.uid === e.target.value);
                           if (staff) onAssignStaff(staff.uid, `${staff.name} (${staff.designation})`);
                         }}
-                        className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-teal-400"
+                        className="w-full bg-burgundy-900 border border-burgundy-700 text-latte-50 text-xs rounded-xl px-3 py-2 focus:ring-1 focus:ring-mocha-400 cursor-pointer"
                       >
-                        <option value="">Select Staff to Assign...</option>
+                        <option value="">Select Staff Member...</option>
                         {eligibleStaff.map((s) => (
                           <option key={s.uid} value={s.uid}>
                             {s.name} — {s.designation}
@@ -363,14 +370,14 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
                     {/* Change Status */}
                     <div>
-                      <label className="block text-[11px] text-slate-400 mb-1">
-                        Update Status:
+                      <label className="block text-[11px] text-mocha-300 font-medium mb-1.5">
+                        Workflow Progression:
                       </label>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {ticket.status !== 'In Progress' && (
                           <button
                             onClick={() => onUpdateStatus('In Progress')}
-                            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white text-xs rounded font-medium transition-colors"
+                            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs rounded-xl font-bold transition-all active:scale-95 shadow-sm"
                           >
                             Mark In Progress
                           </button>
@@ -378,9 +385,9 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                         {ticket.status !== 'Resolved' && (
                           <button
                             onClick={() => setShowResolveModal(true)}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded font-medium transition-colors"
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold transition-all active:scale-95 shadow-sm"
                           >
-                            Resolve Ticket
+                            Mark Resolved
                           </button>
                         )}
                       </div>
@@ -394,10 +401,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 <div className="pt-2 flex justify-end">
                   <button
                     onClick={() => setShowReopenModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-rose-200 transition-colors"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-burgundy-800 hover:bg-burgundy-50 border border-burgundy-200 transition-all active:scale-95"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    Problem Persists? Reopen Ticket
+                    <span>Issue Persists? Reopen Ticket</span>
                   </button>
                 </div>
               )}
@@ -409,38 +416,38 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             <div className="space-y-4">
               <div className="space-y-3">
                 {visibleComments.length === 0 ? (
-                  <div className="p-8 text-center text-slate-400 text-xs">
-                    No comments yet. Start a discussion below.
+                  <div className="py-12 text-center text-mocha-500 text-xs font-medium">
+                    No discussion updates yet. Add a message below.
                   </div>
                 ) : (
                   visibleComments.map((comment) => (
                     <div
                       key={comment.id}
-                      className={`p-3.5 rounded-xl border text-xs text-left ${
+                      className={`p-4 rounded-2xl border text-xs text-left transition-all ${
                         comment.isInternal
-                          ? 'bg-amber-50/70 border-amber-200'
-                          : 'bg-white border-slate-200'
+                          ? 'bg-amber-50/80 border-amber-200/90'
+                          : 'bg-white border-mocha-200/90 shadow-subtle'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">
+                          <span className="font-bold text-burgundy-950">
                             {comment.authorName}
                           </span>
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[10px] text-mocha-600 font-medium">
                             {comment.authorDesignation || comment.authorRole}
                           </span>
                           {comment.isInternal && (
-                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-800 bg-amber-200/80 px-1.5 py-0.2 rounded">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-800 bg-amber-200/90 px-2 py-0.2 rounded-full font-mono">
                               <Lock className="w-2.5 h-2.5" /> Staff Only
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-mocha-400 font-mono">
                           {formatRelativeTime(comment.createdAt)}
                         </span>
                       </div>
-                      <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-slate-700 whitespace-pre-wrap leading-relaxed font-medium">
                         {comment.content}
                       </p>
                     </div>
@@ -449,25 +456,27 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               </div>
 
               {/* Post Comment Input */}
-              <form onSubmit={handleCommentSubmit} className="pt-3 border-t border-slate-200">
+              <form onSubmit={handleCommentSubmit} className="pt-3 border-t border-mocha-100">
                 <textarea
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
-                  placeholder="Type an update or comment..."
+                  placeholder="Type an operational update or student comment..."
                   rows={2}
-                  className="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-900 focus:bg-white resize-none"
+                  className="w-full p-3.5 text-xs sm:text-sm bg-mocha-50/60 border border-mocha-200/90 rounded-2xl focus:ring-2 focus:ring-burgundy-700/20 focus:border-burgundy-700 focus:bg-white resize-none transition-all text-slate-800"
                 />
 
-                <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center justify-between mt-2.5">
                   {isStaffOrAdmin ? (
-                    <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                    <label className="flex items-center gap-2 text-xs text-mocha-700 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isInternalNote}
                         onChange={(e) => setIsInternalNote(e.target.checked)}
-                        className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        className="rounded border-mocha-300 text-amber-600 focus:ring-amber-500"
                       />
-                      <span>Internal staff note (hidden from students)</span>
+                      <span className="font-medium text-amber-900">
+                        Internal staff note (hidden from students)
+                      </span>
                     </label>
                   ) : (
                     <div></div>
@@ -476,40 +485,40 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   <button
                     type="submit"
                     disabled={!newCommentText.trim()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-burgundy-900 text-latte-50 rounded-xl text-xs font-bold hover:bg-burgundy-800 disabled:opacity-50 transition-all active:scale-95 shadow-sm"
                   >
-                    <Send className="w-3 h-3" />
-                    Post
+                    <Send className="w-3.5 h-3.5 text-mocha-300" />
+                    <span>Send Message</span>
                   </button>
                 </div>
               </form>
             </div>
           )}
 
-          {/* History / Audit Log Tab */}
+          {/* Audit History Tab */}
           {activeTab === 'history' && (
             <div className="space-y-3">
-              <p className="text-[11px] text-slate-500 mb-2">
-                Preserved tamper-evident chronological timeline of all actions taken on this ticket:
+              <p className="text-xs text-mocha-600 mb-3 font-medium">
+                Cryptographic immutable audit record of all status changes, staff assignments, and endorsements:
               </p>
-              <div className="relative border-l-2 border-slate-200 ml-3 space-y-4">
+              <div className="relative border-l-2 border-mocha-200 ml-4 space-y-4">
                 {history.map((event) => (
-                  <div key={event.id} className="relative pl-5 text-xs">
-                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-slate-400 ring-4 ring-white" />
+                  <div key={event.id} className="relative pl-6 text-xs">
+                    <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-mocha-400 ring-4 ring-white" />
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-900">
+                      <span className="font-bold text-burgundy-950">
                         {event.actorName}
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-mocha-400 font-mono">
                         {formatRelativeTime(event.timestamp)}
                       </span>
                     </div>
-                    <p className="text-slate-600 mt-0.5">{event.description}</p>
+                    <p className="text-mocha-700 mt-0.5 leading-relaxed">{event.description}</p>
                     {event.previousValue && event.newValue && (
-                      <div className="mt-1 text-[11px] font-mono text-slate-500 bg-slate-100 p-1 rounded inline-flex items-center gap-1">
+                      <div className="mt-1.5 text-[11px] font-mono text-mocha-800 bg-mocha-100 px-2 py-1 rounded-lg inline-flex items-center gap-1.5 border border-mocha-200/60">
                         <span>{event.previousValue}</span>
-                        <ArrowRight className="w-2.5 h-2.5" />
-                        <span className="font-semibold text-slate-800">{event.newValue}</span>
+                        <ArrowRight className="w-3 h-3 text-mocha-400" />
+                        <span className="font-bold text-burgundy-950">{event.newValue}</span>
                       </div>
                     )}
                   </div>
@@ -520,10 +529,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         </div>
 
         {/* Modal footer */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+        <div className="p-4 sm:p-5 border-t border-mocha-100 bg-mocha-50/90 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-lg transition-colors"
+            className="px-5 py-2.5 bg-mocha-100 hover:bg-mocha-200 text-mocha-900 border border-mocha-200 text-xs font-bold rounded-xl transition-colors active:scale-95"
           >
             Close
           </button>
@@ -532,32 +541,32 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
       {/* Resolve Dialog */}
       {showResolveModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/70">
-          <div className="bg-white rounded-xl max-w-md w-full p-5 shadow-elevated border border-slate-200">
-            <h3 className="text-sm font-bold text-slate-900 mb-2">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-burgundy-950/70 backdrop-blur-sm animate-sonner">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-elevated border border-mocha-200">
+            <h3 className="text-base font-extrabold text-burgundy-950 mb-1.5 tracking-tight">
               Mark Ticket as Resolved
             </h3>
-            <p className="text-xs text-slate-600 mb-3">
-              Explain the work completed or actions taken so the reporting student is informed:
+            <p className="text-xs text-mocha-700 mb-3.5 leading-relaxed font-medium">
+              Describe the repair or maintenance actions completed so the reporting student is informed:
             </p>
             <textarea
               value={resolutionNotes}
               onChange={(e) => setResolutionNotes(e.target.value)}
-              placeholder="e.g., Replaced washer, cleared blockage, and tested water pressure."
+              placeholder="e.g. Replaced faulty compressor switch, tested water temperature, and restored normal flow."
               rows={3}
-              className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 mb-3"
+              className="w-full text-xs p-3 border border-mocha-300 rounded-2xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 mb-4 resize-none bg-mocha-50/30 text-mocha-900"
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2.5">
               <button
                 onClick={() => setShowResolveModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg"
+                className="px-4 py-2 text-xs font-bold text-mocha-700 hover:bg-mocha-100 rounded-xl"
               >
                 Cancel
               </button>
               <button
                 onClick={handleResolveSubmit}
                 disabled={!resolutionNotes.trim()}
-                className="px-3 py-1.5 text-xs bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-500 disabled:opacity-50"
+                className="px-4 py-2 text-xs bg-emerald-600 text-white font-extrabold rounded-xl hover:bg-emerald-500 disabled:opacity-50 transition-all active:scale-95"
               >
                 Confirm Resolution
               </button>
@@ -568,32 +577,32 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
       {/* Reopen Dialog */}
       {showReopenModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/70">
-          <div className="bg-white rounded-xl max-w-md w-full p-5 shadow-elevated border border-slate-200">
-            <h3 className="text-sm font-bold text-slate-900 mb-2">
-              Reopen Persisting Issue
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-burgundy-950/70 backdrop-blur-sm animate-sonner">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-elevated border border-mocha-200">
+            <h3 className="text-base font-extrabold text-burgundy-950 mb-1.5 tracking-tight">
+              Reopen Persisting Concern
             </h3>
-            <p className="text-xs text-slate-600 mb-3">
-              Why was the previous resolution unsatisfactory? Please describe the ongoing symptoms:
+            <p className="text-xs text-mocha-700 mb-3.5 leading-relaxed font-medium">
+              Why was the previous resolution incomplete or recurrence observed?
             </p>
             <textarea
               value={reopenReason}
               onChange={(e) => setReopenReason(e.target.value)}
-              placeholder="e.g., The leak started again after 2 hours."
+              placeholder="e.g. Water cooler stopped cooling again after 3 hours."
               rows={3}
-              className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 mb-3"
+              className="w-full text-xs p-3 border border-mocha-300 rounded-2xl focus:ring-2 focus:ring-burgundy-800/20 focus:border-burgundy-800 mb-4 resize-none bg-mocha-50/30 text-mocha-900"
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2.5">
               <button
                 onClick={() => setShowReopenModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg"
+                className="px-4 py-2 text-xs font-bold text-mocha-700 hover:bg-mocha-100 rounded-xl"
               >
                 Cancel
               </button>
               <button
                 onClick={handleReopenSubmit}
                 disabled={!reopenReason.trim()}
-                className="px-3 py-1.5 text-xs bg-rose-600 text-white font-semibold rounded-lg hover:bg-rose-500 disabled:opacity-50"
+                className="px-4 py-2 text-xs bg-burgundy-900 text-latte-50 font-extrabold rounded-xl hover:bg-burgundy-800 disabled:opacity-50 transition-all active:scale-95"
               >
                 Reopen Ticket
               </button>
@@ -604,3 +613,4 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     </div>
   );
 };
+export default TicketDetailModal;

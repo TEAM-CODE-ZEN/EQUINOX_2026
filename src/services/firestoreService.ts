@@ -89,12 +89,12 @@ class FirestoreService {
       const q = query(collection(db, 'tickets'), orderBy('createdAt', 'desc'));
       return onSnapshot(
         q,
-        (snapshot) => {
+        (snapshot: any) => {
           const list: Ticket[] = [];
-          snapshot.forEach((d) => list.push(d.data() as Ticket));
+          snapshot.forEach((d: any) => list.push(d.data() as Ticket));
           callback(list);
         },
-        (error) => {
+        (error: any) => {
           console.warn('Firestore tickets snapshot listener warning:', error);
         }
       );
@@ -125,7 +125,7 @@ class FirestoreService {
     const endorsementRef = doc(db, 'tickets', ticketId, 'endorsements', userUid);
 
     try {
-      return await runTransaction(db, async (transaction) => {
+      return await runTransaction(db, async (transaction: any) => {
         const ticketDoc = await transaction.get(ticketRef);
         if (!ticketDoc.exists()) {
           throw new Error('Ticket does not exist');

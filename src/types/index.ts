@@ -171,7 +171,7 @@ export interface NotificationItem {
   recipientUid: string;
   title: string;
   message: string;
-  type: 'ticket_update' | 'ticket_assigned' | 'comment' | 'committee' | 'announcement' | 'event' | 'safety';
+  type: 'ticket_update' | 'ticket_assigned' | 'comment' | 'committee' | 'announcement' | 'event' | 'safety' | 'gate_pass';
   linkTicketId?: string;
   linkTab?: string;
   read: boolean;
@@ -185,3 +185,35 @@ export interface RoutingRule {
   defaultStaffDesignation: StaffDesignation;
   keywords: string[];
 }
+
+export type GatePassStatus =
+  | 'Pending Warden Approval'
+  | 'Approved'
+  | 'Out of Campus'
+  | 'Returned'
+  | 'Rejected';
+
+export interface GatePass {
+  id: string;
+  passNumber: string; // e.g., "GP-2026-8941"
+  studentUid: string;
+  name: string;
+  roomNo: string;
+  rollNo: string;
+  course: string;
+  parentPhone: string;
+  studentPhone: string;
+  dateFrom: string;
+  dateTo: string;
+  visitAddress: string;
+  purpose: string;
+  status: GatePassStatus;
+  appliedAt: string;
+  approvedAt?: string;
+  approvedByWardenName?: string;
+  rejectionReason?: string;
+  securityCheckOutTime?: string;
+  securityCheckInTime?: string;
+  qrCodeData?: string;
+}
+
