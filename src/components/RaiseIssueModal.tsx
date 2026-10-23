@@ -33,7 +33,7 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
 }) => {
   const [complaint, setComplaint] = useState('');
   const [location, setLocation] = useState(
-    'Boys Hostel Complex • 2nd Floor • Room B-204 [Water Pipeline & Plumbing Grid]'
+    'Boys Hostel • 2nd Floor • Room 204'
   );
   const [isSharedLocation, setIsSharedLocation] = useState(true);
   const [isSensitive, setIsSensitive] = useState(false);
@@ -450,15 +450,15 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
               </label>
             </div>
 
-            {/* Supporting Photograph Upload */}
+            {/* Photo Upload */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                Attach Visual Evidence (Optional)
+              <label className="block text-xs font-bold text-gray-900 mb-1.5">
+                Photo (Optional)
               </label>
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 px-4 py-2.5 bg-white border border-mocha-200/90 rounded-2xl text-xs font-bold text-mocha-800 hover:bg-mocha-50 cursor-pointer transition-all shadow-subtle active:scale-95">
                   <Camera className="w-4 h-4 text-mocha-500" />
-                  <span>{photoFileName ? 'Change Photo' : 'Upload Evidence Photo'}</span>
+                  <span>{photoFileName ? 'Change Photo' : 'Upload Photo'}</span>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"

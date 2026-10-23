@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-  MapPin,
-  Layers,
-  Droplets,
-  Zap,
   Building,
   CheckCircle2,
   ChevronDown,
   Info,
+  Layers,
+  Hash,
 } from 'lucide-react';
 import {
   CAMPUS_BLOCKS,
-  INFRASTRUCTURE_SYSTEMS,
   formatStructuredLocation,
   StructuredLocationParams,
   CampusBlock,
@@ -28,100 +25,74 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
   onChange,
   defaultRoom,
 }) => {
-  // Layer toggles on the blueprint
-  const [activeLayer, setActiveLayer] = useState<'all' | 'pipeline' | 'electrical'>('all');
-  
+  // Extract digits from default room if available (e.g. "B-304" -> "304")
+  const initialRoomNumber = defaultRoom ? defaultRoom.replace(/\D/g, '') : '204';
+
   // Selected location states
   const [selectedBlockId, setSelectedBlockId] = useState<string>('boys-hostel');
   const [selectedFloor, setSelectedFloor] = useState<string>('2nd Floor');
-  const [selectedRoom, setSelectedRoom] = useState<string>(defaultRoom || 'Room B-204');
-  const [selectedInfra, setSelectedInfra] = useState<string>('water-pipeline');
-  
-  // Hovered block on blueprint
+  const [roomNumber, setRoomNumber] = useState<string>(initialRoomNumber);
+
+  // Hovered block on 2D map
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
 
   const currentBlock: CampusBlock =
     CAMPUS_BLOCKS.find((b) => b.id === selectedBlockId) || CAMPUS_BLOCKS[4];
 
-  // Update room list when floor or block changes
+  // Available floors for current block (e.g. 1st to 6th floor)
   const availableFloors = currentBlock.floors;
-  const availableRooms = currentBlock.roomsByFloor[selectedFloor] || currentBlock.roomsByFloor[availableFloors[0]] || [];
 
-  // When block changes, adjust floor and room if needed
+  // When block changes
   const handleBlockChange = (blockId: string) => {
     setSelectedBlockId(blockId);
     const block = CAMPUS_BLOCKS.find((b) => b.id === blockId);
     if (block) {
-      const firstFloor = block.floors.includes(selectedFloor) ? selectedFloor : block.floors[0];
-      setSelectedFloor(firstFloor);
-      const rooms = block.roomsByFloor[firstFloor] || [];
-      const newRoom = rooms[0] || 'Main Area';
-      setSelectedRoom(newRoom);
-      
+      const nextFloor = block.floors.includes(selectedFloor) ? selectedFloor : block.floors[0];
+      setSelectedFloor(nextFloor);
+
       const newLoc = formatStructuredLocation({
         blockId,
-        floor: firstFloor,
-        room: newRoom,
-        infrastructureId: selectedInfra,
+        floor: nextFloor,
+        roomNumber: block.hasRooms ? roomNumber : undefined,
       });
       onChange(newLoc, {
         blockId,
-        floor: firstFloor,
-        room: newRoom,
-        infrastructureId: selectedInfra,
+        floor: nextFloor,
+        roomNumber: block.hasRooms ? roomNumber : undefined,
       });
     }
   };
 
+  // When floor changes
   const handleFloorChange = (floor: string) => {
     setSelectedFloor(floor);
-    const rooms = currentBlock.roomsByFloor[floor] || [];
-    const newRoom = rooms[0] || 'Main Area';
-    setSelectedRoom(newRoom);
-
     const newLoc = formatStructuredLocation({
       blockId: selectedBlockId,
       floor,
-      room: newRoom,
-      infrastructureId: selectedInfra,
+      roomNumber: currentBlock.hasRooms ? roomNumber : undefined,
     });
     onChange(newLoc, {
       blockId: selectedBlockId,
       floor,
-      room: newRoom,
-      infrastructureId: selectedInfra,
+      roomNumber: currentBlock.hasRooms ? roomNumber : undefined,
     });
   };
 
-  const handleRoomChange = (room: string) => {
-    setSelectedRoom(room);
+  // When room number changes (STRICTLY NUMERIC / INTEGERS ONLY)
+  const handleRoomNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Strip everything except numbers (0-9)
+    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 4);
+    setRoomNumber(digitsOnly);
+
     const newLoc = formatStructuredLocation({
       blockId: selectedBlockId,
       floor: selectedFloor,
-      room,
-      infrastructureId: selectedInfra,
+      roomNumber: digitsOnly,
     });
     onChange(newLoc, {
       blockId: selectedBlockId,
       floor: selectedFloor,
-      room,
-      infrastructureId: selectedInfra,
-    });
-  };
-
-  const handleInfraChange = (infraId: string) => {
-    setSelectedInfra(infraId);
-    const newLoc = formatStructuredLocation({
-      blockId: selectedBlockId,
-      floor: selectedFloor,
-      room: selectedRoom,
-      infrastructureId: infraId,
-    });
-    onChange(newLoc, {
-      blockId: selectedBlockId,
-      floor: selectedFloor,
-      room: selectedRoom,
-      infrastructureId: infraId,
+      roomNumber: digitsOnly,
     });
   };
 
@@ -131,168 +102,76 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
       const initial = formatStructuredLocation({
         blockId: selectedBlockId,
         floor: selectedFloor,
-        room: selectedRoom,
-        infrastructureId: selectedInfra,
+        roomNumber: currentBlock.hasRooms ? roomNumber : undefined,
       });
       onChange(initial, {
         blockId: selectedBlockId,
         floor: selectedFloor,
-        room: selectedRoom,
-        infrastructureId: selectedInfra,
+        roomNumber: currentBlock.hasRooms ? roomNumber : undefined,
       });
     }
   }, []);
 
   return (
-    <div className="space-y-4">
-      {/* 2D Blueprint Header & View Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-3.5">
+      {/* 2D Map Section Header */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
             <Building className="w-3.5 h-3.5" />
           </div>
           <span className="text-xs font-bold text-gray-900 uppercase tracking-wider font-mono">
-            Campus 2D Infrastructure Blueprint
+            College 2D Campus Map
           </span>
         </div>
-
-        {/* Blueprint Layer Filter Tabs */}
-        <div className="flex items-center gap-1 bg-mocha-100/90 p-1 rounded-xl text-[11px] font-bold">
-          <button
-            type="button"
-            onClick={() => setActiveLayer('all')}
-            className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeLayer === 'all'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-mocha-600 hover:text-gray-900'
-            }`}
-          >
-            <Layers className="w-3 h-3" />
-            <span>Full Layout</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveLayer('pipeline')}
-            className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeLayer === 'pipeline'
-                ? 'bg-sky-600 text-white shadow-sm'
-                : 'text-sky-700 hover:text-sky-900'
-            }`}
-          >
-            <Droplets className="w-3 h-3" />
-            <span>Pipelines</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveLayer('electrical')}
-            className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-              activeLayer === 'electrical'
-                ? 'bg-amber-600 text-white shadow-sm'
-                : 'text-amber-700 hover:text-amber-900'
-            }`}
-          >
-            <Zap className="w-3 h-3" />
-            <span>Wiring Grid</span>
-          </button>
-        </div>
+        <span className="text-[11px] text-mocha-600 font-medium">
+          Click any block on the map to select
+        </span>
       </div>
 
-      {/* Interactive 2D SVG Blueprint Canvas */}
-      <div className="relative w-full rounded-2xl overflow-hidden border-2 border-slate-700/80 bg-[#0B192C] shadow-inner select-none">
-        {/* Architectural Blueprint Grid Pattern */}
+      {/* Clean 2D Campus Blueprint SVG (No Mixed/Spaghetti Lines) */}
+      <div className="relative w-full rounded-2xl overflow-hidden border-2 border-slate-700/70 bg-[#0B192C] shadow-inner select-none">
         <svg
           viewBox="0 0 600 420"
           className="w-full h-auto cursor-pointer block"
-          style={{ maxHeight: '280px' }}
+          style={{ maxHeight: '250px' }}
         >
           <defs>
             {/* Fine Blueprint Grid */}
-            <pattern id="blueprint-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <pattern id="clean-grid" width="20" height="20" patternUnits="userSpaceOnUse">
               <path
                 d="M 20 0 L 0 0 0 20"
                 fill="none"
-                stroke="rgba(56, 189, 248, 0.09)"
+                stroke="rgba(56, 189, 248, 0.08)"
                 strokeWidth="1"
               />
             </pattern>
-            {/* Water Pipeline Glow */}
-            <filter id="pipe-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-            {/* Electrical Glow */}
-            <filter id="wire-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
 
           {/* Grid background */}
           <rect width="600" height="420" fill="#0B192C" />
-          <rect width="600" height="420" fill="url(#blueprint-grid)" />
+          <rect width="600" height="420" fill="url(#clean-grid)" />
 
-          {/* Blueprint Title Box (Engineering standard) */}
-          <rect x="15" y="15" width="200" height="24" fill="#0F2847" rx="4" stroke="#1E4976" strokeWidth="1" />
-          <text x="25" y="31" fill="#38BDF8" fontSize="10" fontFamily="monospace" fontWeight="bold">
-            CAMPUS FACILITY BLUEPRINT 2.0
+          {/* Blueprint Title Header */}
+          <rect x="15" y="12" width="180" height="20" fill="#0F2847" rx="4" stroke="#1E4976" strokeWidth="1" />
+          <text x="25" y="26" fill="#38BDF8" fontSize="9" fontFamily="monospace" fontWeight="bold">
+            CAMPUS 2D MASTER LAYOUT
           </text>
 
-          {/* --- WATER PIPELINE INFRASTRUCTURE OVERLAY --- */}
-          {(activeLayer === 'all' || activeLayer === 'pipeline') && (
-            <g id="pipelines-layer">
-              {/* Main Spine Pipeline (Header Line) */}
-              <path
-                d="M 120 95 L 300 95 L 480 95 L 480 225 L 300 225 L 120 225 Z"
-                fill="none"
-                stroke="#0284C7"
-                strokeWidth="3.5"
-                strokeDasharray="6 3"
-                filter="url(#pipe-glow)"
-              />
-              {/* Feeder to Boys Hostel */}
-              <line x1="120" y1="225" x2="120" y2="280" stroke="#0284C7" strokeWidth="3" />
-              {/* Feeder to Girls Hostel */}
-              <line x1="480" y1="225" x2="480" y2="280" stroke="#0284C7" strokeWidth="3" />
-              {/* Feeder to Mess Water Storage */}
-              <line x1="300" y1="225" x2="300" y2="180" stroke="#0284C7" strokeWidth="3" />
+          {/* Walking Pathways / Roads connecting buildings */}
+          <path
+            d="M 112 135 L 112 280 M 297 135 L 297 170 M 297 255 L 297 285 M 482 135 L 482 280 M 112 170 L 482 170"
+            fill="none"
+            stroke="rgba(148, 163, 184, 0.25)"
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
 
-              {/* Water Nodes (Valves / Pumps) */}
-              <circle cx="120" cy="95" r="4" fill="#38BDF8" />
-              <circle cx="300" cy="95" r="4" fill="#38BDF8" />
-              <circle cx="480" cy="95" r="4" fill="#38BDF8" />
-              <circle cx="120" cy="225" r="4" fill="#38BDF8" />
-              <circle cx="480" cy="225" r="4" fill="#38BDF8" />
-            </g>
-          )}
-
-          {/* --- ELECTRICAL WIRING CONDUIT OVERLAY --- */}
-          {(activeLayer === 'all' || activeLayer === 'electrical') && (
-            <g id="electrical-layer">
-              {/* High Voltage Bus Conduit */}
-              <path
-                d="M 60 40 L 540 40 L 540 400 L 60 400 Z"
-                fill="none"
-                stroke="#F59E0B"
-                strokeWidth="2"
-                strokeDasharray="4 4"
-                filter="url(#wire-glow)"
-              />
-              {/* Sub-panel links */}
-              <line x1="300" y1="40" x2="300" y2="180" stroke="#F59E0B" strokeWidth="2" />
-              <line x1="190" y1="335" x2="230" y2="335" stroke="#F59E0B" strokeWidth="2" />
-
-              {/* Power Nodes */}
-              <rect x="295" y="35" width="10" height="10" fill="#FBBF24" rx="2" />
-              <rect x="55" y="395" width="10" height="10" fill="#FBBF24" rx="2" />
-              <rect x="535" y="395" width="10" height="10" fill="#FBBF24" rx="2" />
-            </g>
-          )}
-
-          {/* --- CAMPUS BLOCKS / BUILDINGS --- */}
+          {/* Campus Blocks / Buildings */}
           {CAMPUS_BLOCKS.map((block) => {
             const isSelected = selectedBlockId === block.id;
             const isHovered = hoveredBlockId === block.id;
-            const { x, y, width, height, label } = block.blueprintCoords;
+            const { x, y, width, height, label, sublabel } = block.blueprintCoords;
 
             return (
               <g
@@ -302,19 +181,19 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
                 onMouseLeave={() => setHoveredBlockId(null)}
                 className="transition-all duration-150 cursor-pointer"
               >
-                {/* Block Footprint Rectangle */}
+                {/* Building Box */}
                 <rect
                   x={x}
                   y={y}
                   width={width}
                   height={height}
-                  rx="8"
+                  rx="10"
                   fill={
                     isSelected
                       ? 'rgba(34, 197, 94, 0.28)'
                       : isHovered
                       ? 'rgba(56, 189, 248, 0.22)'
-                      : 'rgba(15, 40, 71, 0.75)'
+                      : 'rgba(15, 40, 71, 0.85)'
                   }
                   stroke={
                     isSelected
@@ -326,7 +205,7 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
                   strokeWidth={isSelected ? 3 : isHovered ? 2 : 1.5}
                 />
 
-                {/* Corner blueprint registration marks */}
+                {/* Corner blueprint marks */}
                 <path
                   d={`M ${x} ${y + 8} L ${x} ${y} L ${x + 8} ${y}`}
                   fill="none"
@@ -340,33 +219,36 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
                   strokeWidth="1.5"
                 />
 
-                {/* Building Code & Name Label */}
+                {/* Building Main Label */}
                 <text
                   x={x + width / 2}
-                  y={y + height / 2 - 4}
-                  fill={isSelected ? '#86EFAC' : '#F1F5F9'}
-                  fontSize="11"
+                  y={y + height / 2 - 5}
+                  fill={isSelected ? '#86EFAC' : '#F8FAFC'}
+                  fontSize="12"
                   fontFamily="sans-serif"
                   fontWeight="bold"
                   textAnchor="middle"
                 >
                   {label}
                 </text>
+
+                {/* Sub-label (Function / Floors) */}
                 <text
                   x={x + width / 2}
                   y={y + height / 2 + 12}
                   fill={isSelected ? '#4ADE80' : '#94A3B8'}
-                  fontSize="8"
-                  fontFamily="monospace"
+                  fontSize="8.5"
+                  fontFamily="sans-serif"
+                  fontWeight="500"
                   textAnchor="middle"
                 >
-                  [{block.code}] • {block.floors.length} Levels
+                  {sublabel}
                 </text>
 
-                {/* Selected Status Pin */}
+                {/* Selection Pin Badge */}
                 {isSelected && (
-                  <g transform={`translate(${x + width - 18}, ${y + 6})`}>
-                    <circle cx="6" cy="6" r="6" fill="#22C55E" />
+                  <g transform={`translate(${x + width - 20}, ${y + 8})`}>
+                    <circle cx="6" cy="6" r="7" fill="#22C55E" />
                     <path
                       d="M 3.5 6 L 5.5 8 L 8.5 4"
                       fill="none"
@@ -380,11 +262,11 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
           })}
         </svg>
 
-        {/* Blueprint Footer Help Badge */}
-        <div className="px-3 py-1.5 bg-[#091424] border-t border-slate-800 text-[10px] text-slate-400 flex items-center justify-between font-mono">
+        {/* Blueprint Footer Indicator */}
+        <div className="px-3 py-1.5 bg-[#091424] border-t border-slate-800 text-[11px] text-slate-300 flex items-center justify-between font-mono">
           <span className="flex items-center gap-1.5">
-            <Info className="w-3 h-3 text-cyan-400" />
-            <span>Interactive Blueprint: Click any block or zone to target repair dispatch</span>
+            <Info className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Map active: click any block above or choose below</span>
           </span>
           <span className="text-emerald-400 font-bold">
             Selected: {currentBlock.code}
@@ -393,19 +275,19 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
       </div>
 
       {/* ---------------------------------------------------------------------- */}
-      {/* 4 Cascading Dropdown Selectors (Eliminates All Random Text / "Flaana")   */}
+      {/* 3 Clean Fields: Block Dropdown, Floors Dropdown, Room Number (Digits)    */}
       {/* ---------------------------------------------------------------------- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {/* Dropdown 1: Campus Block */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Field 1: College Block / Area Dropdown */}
         <div>
-          <label className="block text-[11px] font-bold text-mocha-800 uppercase tracking-wider font-mono mb-1">
-            1. College Block / Area <span className="text-red-500">*</span>
+          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wider font-mono mb-1">
+            1. College Block / Hostel <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <select
               value={selectedBlockId}
               onChange={(e) => handleBlockChange(e.target.value)}
-              className="w-full appearance-none bg-white border border-mocha-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 pr-8 shadow-sm cursor-pointer"
+              className="w-full appearance-none bg-white border border-mocha-300 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 pr-8 shadow-sm cursor-pointer"
             >
               {CAMPUS_BLOCKS.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -413,20 +295,20 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-mocha-500 absolute right-2.5 top-2.5 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-mocha-500 absolute right-2.5 top-3 pointer-events-none" />
           </div>
         </div>
 
-        {/* Dropdown 2: Floor Level */}
+        {/* Field 2: Floor Level Dropdown (Ground to 6th Floor) */}
         <div>
-          <label className="block text-[11px] font-bold text-mocha-800 uppercase tracking-wider font-mono mb-1">
+          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wider font-mono mb-1">
             2. Floor Level <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <select
               value={selectedFloor}
               onChange={(e) => handleFloorChange(e.target.value)}
-              className="w-full appearance-none bg-white border border-mocha-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 pr-8 shadow-sm cursor-pointer"
+              className="w-full appearance-none bg-white border border-mocha-300 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 pr-8 shadow-sm cursor-pointer"
             >
               {availableFloors.map((fl) => (
                 <option key={fl} value={fl}>
@@ -434,76 +316,54 @@ export const CampusBlueprintPicker: React.FC<CampusBlueprintPickerProps> = ({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-mocha-500 absolute right-2.5 top-2.5 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-mocha-500 absolute right-2.5 top-3 pointer-events-none" />
           </div>
         </div>
 
-        {/* Dropdown 3: Room / Specific Sub-Area */}
+        {/* Field 3: Room Number Input (ONLY INTEGERS / DIGITS ALLOWED) */}
         <div>
-          <label className="block text-[11px] font-bold text-mocha-800 uppercase tracking-wider font-mono mb-1">
-            3. Room / Spot <span className="text-red-500">*</span>
+          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wider font-mono mb-1 flex items-center justify-between">
+            <span>3. Room Number {currentBlock.hasRooms && <span className="text-red-500">*</span>}</span>
+            <span className="text-[10px] text-mocha-500 lowercase font-sans font-normal">(numbers only)</span>
           </label>
           <div className="relative">
-            <select
-              value={selectedRoom}
-              onChange={(e) => handleRoomChange(e.target.value)}
-              className="w-full appearance-none bg-white border border-mocha-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 pr-8 shadow-sm cursor-pointer"
-            >
-              {availableRooms.map((rm) => (
-                <option key={rm} value={rm}>
-                  {rm}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-mocha-500 absolute right-2.5 top-2.5 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Dropdown 4: Infrastructure / Structuring System */}
-        <div>
-          <label className="block text-[11px] font-bold text-mocha-800 uppercase tracking-wider font-mono mb-1">
-            4. Blueprint System <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <select
-              value={selectedInfra}
-              onChange={(e) => handleInfraChange(e.target.value)}
-              className="w-full appearance-none bg-white border border-mocha-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 pr-8 shadow-sm cursor-pointer"
-            >
-              {INFRASTRUCTURE_SYSTEMS.map((sys) => (
-                <option key={sys.id} value={sys.id}>
-                  {sys.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-mocha-500 absolute right-2.5 top-2.5 pointer-events-none" />
+            <Hash className="w-4 h-4 text-mocha-400 absolute left-3 top-3 pointer-events-none" />
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={roomNumber}
+              onChange={handleRoomNumberChange}
+              disabled={!currentBlock.hasRooms}
+              placeholder={currentBlock.hasRooms ? 'e.g. 204' : 'N/A (Outdoor)'}
+              className="w-full bg-white border border-mocha-300 rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 shadow-sm placeholder:text-mocha-400 placeholder:font-normal disabled:bg-mocha-100/60 disabled:cursor-not-allowed font-mono"
+            />
           </div>
         </div>
       </div>
 
-      {/* Verified Standardized Location Badge */}
-      <div className="p-3 bg-emerald-50/90 rounded-2xl border border-emerald-200/90 flex items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 min-w-0">
+      {/* Clean Verified Standardized Location Badge */}
+      <div className="p-3 bg-emerald-50/90 rounded-2xl border border-emerald-200/90 flex items-center justify-between gap-3 text-xs shadow-sm">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
             <CheckCircle2 className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
             <span className="text-[10px] font-bold text-emerald-800 uppercase font-mono block">
-              Verified Blueprint Location (Standardized)
+              Verified Location
             </span>
             <p className="font-bold text-emerald-950 truncate">
               {formatStructuredLocation({
                 blockId: selectedBlockId,
                 floor: selectedFloor,
-                room: selectedRoom,
-                infrastructureId: selectedInfra,
+                roomNumber: currentBlock.hasRooms ? roomNumber : undefined,
               })}
             </p>
           </div>
         </div>
 
-        <span className="text-[10px] font-bold text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200 flex-shrink-0 font-mono">
-          Anti-Randomness Locked
+        <span className="text-[10px] font-bold text-emerald-700 bg-white px-2.5 py-0.5 rounded-lg border border-emerald-200 flex-shrink-0 font-mono">
+          Locked
         </span>
       </div>
     </div>
