@@ -347,84 +347,29 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
               </button>
             </div>
           ) : (
-            displayedTickets.map((ticket) => {
-              const hasEndorsed = ticket.endorsedUserIds?.includes(currentUser.uid);
-              const isCombined = ticket.affectedCount > 1;
-
-              return (
-                <div
-                  key={ticket.id}
-                  onClick={() => onSelectTicket(ticket)}
-                  className="p-5 bg-white hover:bg-latte-50/60 rounded-3xl border border-mocha-200/90 shadow-subtle hover:shadow-card transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  {/* Left Info: Clean, Large, Easy to Read */}
-                  <div className="space-y-2 min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {getStatusBadge(ticket.status)}
-                      {getPriorityBadge(ticket)}
-                      <span className="text-xs font-bold text-[#15803D] bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200/80">
-                        {ticket.category}
-                      </span>
-                    </div>
-
-                    {/* Big Readable Title */}
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#15803D] transition-colors leading-snug">
-                      {ticket.title}
-                    </h3>
-
-                    {/* Clean Location & Relative Time */}
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-mocha-700 font-medium">
-                      <span className="flex items-center gap-1.5 text-mocha-800">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{ticket.location}</span>
-                      </span>
-                      <span>•</span>
-                      <span className="text-mocha-500 font-medium">
-                        {formatRelativeTime(ticket.createdAt)}
-                      </span>
-                      {ticket.assignedStaffName && (
-                        <>
-                          <span>•</span>
-                          <span className="text-emerald-700 font-bold">
-                            Assigned: {ticket.assignedStaffName}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Action: Upvote (+1) & Track Button */}
-                  <div className="flex items-center gap-2 self-start sm:self-center flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-mocha-100 w-full sm:w-auto justify-between sm:justify-end">
-                    {onToggleEndorse && ticket.status !== 'Resolved' && (
-                      <button
-                        onClick={(e) => onToggleEndorse(ticket.id, e)}
-                        title={hasEndorsed ? 'You endorsed this issue' : 'Tap if you face this issue too'}
-                        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 border ${
-                          hasEndorsed
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                            : 'bg-mocha-50 hover:bg-emerald-50 border-mocha-200 text-mocha-700 hover:text-emerald-800'
-                        }`}
-                      >
-                        <ThumbsUp className={`w-3.5 h-3.5 ${hasEndorsed ? 'fill-white' : ''}`} />
-                        <span>{ticket.affectedCount}</span>
-                        {hasEndorsed && <span className="text-[10px] opacity-90">• You +1</span>}
-                      </button>
-                    )}
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectTicket(ticket);
-                      }}
-                      className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-[#16A34A] hover:bg-[#22C55E] text-white text-xs font-bold transition-all active:scale-95 shadow-sm"
-                    >
-                      <span>Track Issue</span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+            displayedTickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                onClick={() => onSelectTicket(ticket)}
+                className="group relative bg-white border border-mocha-200/90 hover:border-emerald-300 rounded-2xl p-4 sm:p-5 shadow-subtle hover:shadow-card transition-all duration-200 cursor-pointer text-left select-none flex items-center justify-between gap-4"
+              >
+                {/* Department & Issue Name Only */}
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <span className="inline-block text-xs font-bold text-[#15803D] bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200/80 font-mono">
+                    {ticket.category}
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#15803D] transition-colors leading-snug truncate">
+                    {ticket.title}
+                  </h3>
                 </div>
-              );
-            })
+
+                {/* Right: Clean View Indicator */}
+                <div className="flex items-center gap-1.5 text-mocha-400 group-hover:text-[#15803D] transition-colors flex-shrink-0">
+                  <span className="text-xs font-bold hidden sm:inline">Details</span>
+                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+                </div>
+              </div>
+            ))
           )}
         </div>
       </div>
