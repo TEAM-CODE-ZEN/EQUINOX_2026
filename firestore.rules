@@ -1,0 +1,185 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isSignedIn() && getUserData().role == role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        getUserData().role == 'Admin'
+      );
+    }
+
+    function isWarden() {
+      return isSignedIn() && (
+        getUserData().role == 'Campus Staff' &&
+        (getUserData().designation == 'Warden' || getUserData().designation == 'Head Warden')
+      );
+    }
+
+    function isStaff() {
+      return isSignedIn() && (
+        getUserData().role == 'Campus Staff' ||
+        isAdmin()
+      );
+    }
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      // Authenticated users can read their own profile, staff and admin can read any profile
+      allow read: if isSignedIn() && (isOwner(userId) || isStaff());
+      
+      // Initial creation on signup
+      allow create: if isOwner(userId) && 
+        request.resource.data.role == 'Student' &&
+        request.resource.data.accountStatus == 'Active';
+      
+      // Update: users can update name/roomNumber, but NOT role, accountStatus, or committeeMemberships
+      allow update: if isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'accountStatus', 'committeeMemberships'])
+        || isAdmin();
+
+      // Deletion: Admin only
+      allow delete: if isAdmin();
+    }
+
+    // Tickets
+    match /tickets/{ticketId} {
+      // Sensitive tickets are visible only to the reporter or staff/admin
+      allow read: if isSignedIn() && (
+        resource.data.isSensitive == false ||
+        resource.data.reporterUid == request.auth.uid ||
+        isStaff()
+      );
+
+      // Ticket Creation
+      allow create: if isSignedIn() &&
+        request.resource.data.reporterUid == request.auth.uid &&
+        request.resource.data.status == 'Open' &&
+        request.resource.data.affectedCount == 1;
+
+      // Ticket Updates
+      allow update: if isSignedIn() && (
+        // Staff or Admin can manage assignment, status, category, resolution notes
+        isStaff() ||
+        // Students can endorse or reopen their own ticket
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['affectedCount', 'updatedAt'])) ||
+        (resource.data.reporterUid == request.auth.uid && resource.data.status == 'Resolved' && request.resource.data.status == 'Reopened')
+      );
+
+      allow delete: if isAdmin();
+
+      // Comments Subcollection
+      match /comments/{commentId} {
+        // Internal notes are hidden from students
+        allow read: if isSignedIn() && (
+          resource.data.isInternal == false ||
+          isStaff()
+        );
+
+        // Regular users can post public comments; only staff can post internal notes
+        allow create: if isSignedIn() &&
+          request.resource.data.authorUid == request.auth.uid &&
+          (request.resource.data.isInternal == false || isStaff());
+
+        // Comments cannot be edited or deleted to preserve audit integrity
+        allow update, delete: if false;
+      }
+
+      // History / Audit Subcollection
+      match /history/{historyId} {
+        allow read: if isSignedIn();
+        // Written only by staff or backend operations
+        allow create: if isStaff();
+        allow update, delete: if false;
+      }
+
+      // Endorsements (Idempotent +1 tracking)
+      match /endorsements/{userId} {
+        allow read: if isSignedIn();
+        // A user can only write an endorsement document with their own UID as the key
+        allow create, delete: if isOwner(userId);
+        allow update: if false;
+      }
+    }
+
+    // Communities
+    match /communities/{communityId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Committee Memberships
+    match /committeeMemberships/{membershipId} {
+      allow read: if isSignedIn();
+      // Only Admin can propose committee memberships
+      allow create: if isAdmin();
+      // Warden or Admin can approve or reject
+      allow update: if isWarden() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Announcements
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn();
+      allow write: if isWarden() || isAdmin();
+    }
+
+    // Events
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow write: if isWarden() || isAdmin();
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      // User can only view their own notifications
+      allow read: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
+      // User can mark their notifications as read
+      allow update: if isSignedIn() && 
+        resource.data.recipientUid == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
+    }
+
+    // Routing Rules & App Config
+    match /routingRules/{ruleId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /appConfig/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Audit Logs
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,30 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    function isUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Ticket photo uploads
+    match /tickets/{ticketId}/{fileName} {
+      // Authenticated users can read ticket photos
+      allow read: if isSignedIn();
+      // Authenticated users can upload photos with size limit and valid mime type
+      allow write: if isSignedIn() && isImage() && isUnder5MB();
+    }
+  }
+}
