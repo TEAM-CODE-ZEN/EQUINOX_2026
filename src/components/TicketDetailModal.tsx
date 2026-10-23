@@ -272,15 +272,33 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             </div>
           ) : null}
 
-          {/* The Issue Description */}
+          {/* AI Problem Summary */}
           <div className="space-y-1.5">
-            <span className="text-xs font-bold text-mocha-700 uppercase tracking-wider font-mono">
-              Problem Description
-            </span>
-            <div className="p-4 bg-white rounded-2xl border border-mocha-200 text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-wrap shadow-subtle">
-              {ticket.originalComplaint || ticket.summary}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>AI Problem Summary</span>
+              </span>
+              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full font-mono border border-emerald-200">
+                Gemini 2.5 Triage
+              </span>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 rounded-2xl border border-emerald-200/90 text-xs sm:text-sm text-gray-900 leading-relaxed font-medium shadow-sm">
+              {ticket.summary}
             </div>
           </div>
+
+          {/* Original Complaint (if different from summary) */}
+          {ticket.originalComplaint && ticket.originalComplaint !== ticket.summary && (
+            <div className="space-y-1.5">
+              <span className="text-xs font-bold text-mocha-700 uppercase tracking-wider font-mono">
+                Student's Reported Description (Raw)
+              </span>
+              <div className="p-3.5 bg-white rounded-2xl border border-mocha-200 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap shadow-subtle">
+                {ticket.originalComplaint}
+              </div>
+            </div>
+          )}
 
           {/* Photos (if attached) */}
           {ticket.photoUrls && ticket.photoUrls.length > 0 && (

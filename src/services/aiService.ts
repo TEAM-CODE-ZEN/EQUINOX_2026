@@ -207,25 +207,88 @@ export class AiService {
       missingInfo.push('Adding symptom onset time or specific equipment details will speed up resolution.');
     }
 
-    // Title generation
-    let title = 'Campus Infrastructure Report';
-    if (category === 'Mess') {
-      title = 'Mess Quality & Dining Service Issue';
-    } else if (category === 'Internet / Connectivity') {
-      title = 'Hostel Wi-Fi Network Outage';
-    } else if (category === 'Security') {
-      title = 'Campus Security & Access Concern';
-    } else if (text.includes('cooler')) {
-      title = 'Drinking Water Cooler Malfunction';
-    } else if (text.includes('tap') || text.includes('pipe') || text.includes('leak')) {
-      title = 'Plumbing Pipe & Tap Leakage';
-    } else if (text.includes('ac') || text.includes('cooling')) {
-      title = 'Air Conditioning & Ventilation Fault';
-    } else if (text.includes('light') || text.includes('fan') || text.includes('switch')) {
-      title = 'Electrical Fixture Malfunction';
-    }
+    // Intelligent Problem Summarization & Synthesis
+    let title = '';
+    let smartSummary = '';
+    const locClean = location.replace(/\[.*?\]/, '').trim();
+    const spot = locClean || 'reported facility';
 
-    const summary = complaint.length > 120 ? complaint.substring(0, 117) + '...' : complaint;
+    if (
+      text.includes('leak') ||
+      text.includes('tap') ||
+      text.includes('pipe') ||
+      text.includes('cooler') ||
+      text.includes('paani') ||
+      text.includes('water') ||
+      text.includes('flush') ||
+      text.includes('drain')
+    ) {
+      category = 'Maintenance';
+      suggestedCommunity = 'Maintenance';
+      title = `Plumbing & Water System Fault — ${spot}`;
+      smartSummary = `Active water line or plumbing malfunction reported at ${spot}. Risk of continuous seepage and resource wastage; requires maintenance technician dispatch for valve, seal, and pressure line inspection.`;
+    } else if (
+      text.includes('light') ||
+      text.includes('fan') ||
+      text.includes('spark') ||
+      text.includes('wire') ||
+      text.includes('socket') ||
+      text.includes('switch') ||
+      text.includes('power') ||
+      text.includes('mcb') ||
+      text.includes('bijli') ||
+      text.includes('short circuit')
+    ) {
+      category = 'Maintenance';
+      suggestedCommunity = 'Maintenance';
+      title = `Electrical Wiring & Fixture Fault — ${spot}`;
+      smartSummary = `Electrical circuit irregularity or fixture disruption observed at ${spot}. Requires urgent electrician inspection to verify conduit lines, breaker stability, and prevent electrical hazards.`;
+    } else if (
+      text.includes('wifi') ||
+      text.includes('wi-fi') ||
+      text.includes('internet') ||
+      text.includes('lan') ||
+      text.includes('network') ||
+      text.includes('router') ||
+      text.includes('speed')
+    ) {
+      category = 'Internet / Connectivity';
+      suggestedCommunity = 'Internet / Connectivity';
+      title = `Network & Wi-Fi Outage — ${spot}`;
+      smartSummary = `Connectivity drop or Access Point interruption logged at ${spot}. Escalated to IT Campus Infrastructure team for router reboot, channel diagnostics, and throughput verification.`;
+    } else if (
+      text.includes('mess') ||
+      text.includes('food') ||
+      text.includes('canteen') ||
+      text.includes('roti') ||
+      text.includes('dal') ||
+      text.includes('dining') ||
+      text.includes('hygiene') ||
+      text.includes('insect')
+    ) {
+      category = 'Mess';
+      suggestedCommunity = 'Mess';
+      title = `Dining & Food Service Concern — ${spot}`;
+      smartSummary = `Hostel catering or hygiene irregularity noted at ${spot}. Transmitted to Mess Committee and head catering contractor for immediate kitchen inspection.`;
+    } else if (
+      text.includes('security') ||
+      text.includes('guard') ||
+      text.includes('lock') ||
+      text.includes('door') ||
+      text.includes('theft') ||
+      text.includes('stolen') ||
+      text.includes('harass') ||
+      text.includes('safety')
+    ) {
+      category = 'Security';
+      suggestedCommunity = 'Security';
+      title = `Campus Security & Entry Concern — ${spot}`;
+      smartSummary = `Physical security, lock integrity, or access control issue reported at ${spot}. Alerted to Hostel Warden and campus security personnel for on-ground verification.`;
+    } else {
+      title = `Facility Repair Request — ${spot}`;
+      const coreComplaint = complaint.trim().replace(/\n+/g, ' ');
+      smartSummary = `Campus service request logged at ${spot}: "${coreComplaint.length > 100 ? coreComplaint.substring(0, 97) + '...' : coreComplaint}". Assigned for routine facility supervisor review.`;
+    }
 
     let visibleEvidence: string | undefined = undefined;
     if (photoBase64) {
@@ -233,8 +296,8 @@ export class AiService {
     }
 
     return {
-      title: `${location ? location.split(',')[0].trim() + ' — ' : ''}${title}`,
-      summary: summary,
+      title,
+      summary: smartSummary,
       category,
       suggestedCommunity,
       priority,

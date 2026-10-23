@@ -14,6 +14,7 @@ import {
 import { Ticket, UserProfile } from '../types';
 import { aiService, DuplicateMatchResult } from '../services/aiService';
 import { AiAnalysisResult } from '../utils/validation';
+import { CampusBlueprintPicker } from './CampusBlueprintPicker';
 
 interface RaiseIssueModalProps {
   onClose: () => void;
@@ -32,7 +33,7 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
 }) => {
   const [complaint, setComplaint] = useState('');
   const [location, setLocation] = useState(
-    currentUser.roomNumber ? `Hostel 3, Room ${currentUser.roomNumber}` : ''
+    'Boys Hostel Complex • 2nd Floor • Room B-204 [Water Pipeline & Plumbing Grid]'
   );
   const [isSharedLocation, setIsSharedLocation] = useState(true);
   const [isSensitive, setIsSensitive] = useState(false);
@@ -72,12 +73,12 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
   // Step 1: Trigger AI Triage & Duplicate Detection
   const handleAnalyzeAndReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (complaint.trim().length < 10) {
-      setErrorMsg('Please provide at least 10 characters describing the issue in detail.');
+    if (complaint.trim().length < 5) {
+      setErrorMsg('Please describe the problem in at least 5 characters so AI can summarize it.');
       return;
     }
-    if (location.trim().length < 2) {
-      setErrorMsg('Please specify the campus location.');
+    if (!location || location.trim().length < 2) {
+      setErrorMsg('Please select a valid campus blueprint location.');
       return;
     }
 
@@ -284,38 +285,42 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
 
           {/* AI Analysis Result & Clarification Step */}
           {aiAnalysis && (
-            <div className="p-4 sm:p-5 bg-gradient-to-br from-mocha-50/90 to-latte-100/70 rounded-2xl border border-mocha-200 space-y-3.5 animate-sonner">
+            <div className="p-4 sm:p-5 bg-gradient-to-br from-emerald-50/90 to-teal-50/70 rounded-2xl border border-emerald-200/90 space-y-3 animate-sonner">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-burgundy-900 text-mocha-300 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-xs font-extrabold text-burgundy-950 uppercase tracking-wider font-mono">
-                    AI Pre-Triage Assessment
+                  <span className="text-xs font-extrabold text-emerald-950 uppercase tracking-wider font-mono">
+                    AI Problem Summary & Triage
                   </span>
                 </div>
-                <span className="text-[10px] bg-burgundy-100 text-burgundy-950 font-extrabold px-2.5 py-0.5 rounded-full font-mono border border-burgundy-200/60">
+                <span className="text-[10px] bg-emerald-100 text-emerald-900 font-extrabold px-2.5 py-0.5 rounded-full font-mono border border-emerald-200">
                   {aiAnalysis.category}
                 </span>
               </div>
 
-              <div className="p-3 bg-white rounded-xl border border-mocha-200/80 space-y-1">
-                <p className="text-xs font-bold text-burgundy-950">{aiAnalysis.title}</p>
-                <p className="text-xs text-mocha-800 leading-relaxed">{aiAnalysis.summary}</p>
+              {/* Title & AI Smart Summary */}
+              <div className="p-3.5 bg-white rounded-xl border border-emerald-200/80 space-y-1.5 shadow-sm">
+                <p className="text-xs font-bold text-gray-900">{aiAnalysis.title}</p>
+                <div className="text-xs text-gray-700 leading-relaxed font-medium">
+                  <span className="font-bold text-emerald-800">AI Summary: </span>
+                  {aiAnalysis.summary}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2.5 bg-white rounded-xl border border-mocha-200/80">
+                <div className="p-2.5 bg-white rounded-xl border border-emerald-100 shadow-sm">
                   <span className="text-mocha-500 font-medium block text-[10px] uppercase font-mono">
-                    Target Department
+                    Assigned Department
                   </span>
-                  <span className="font-bold text-burgundy-950">{aiAnalysis.suggestedCommunity}</span>
+                  <span className="font-bold text-emerald-900">{aiAnalysis.suggestedCommunity}</span>
                 </div>
-                <div className="p-2.5 bg-white rounded-xl border border-mocha-200/80">
+                <div className="p-2.5 bg-white rounded-xl border border-emerald-100 shadow-sm">
                   <span className="text-mocha-500 font-medium block text-[10px] uppercase font-mono">
                     Urgency Scoring
                   </span>
-                  <span className="font-bold text-burgundy-950">
+                  <span className="font-bold text-emerald-900">
                     {aiAnalysis.priority} ({aiAnalysis.priorityReason})
                   </span>
                 </div>
@@ -358,38 +363,55 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
           <form id="raise-issue-form" onSubmit={handleAnalyzeAndReview} className="space-y-4">
             {/* Written Complaint */}
             <div>
-              <label className="block text-xs font-bold text-mocha-900 mb-1.5">
-                Describe the Campus Issue <span className="text-burgundy-700">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-gray-900">
+                  Describe the Campus Issue <span className="text-red-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (complaint.trim().length < 5) {
+                      setErrorMsg('Please type a few words of your complaint first so AI can summarize it.');
+                      return;
+                    }
+                    setIsAnalyzing(true);
+                    setErrorMsg('');
+                    try {
+                      const { result } = await aiService.analyzeComplaint(complaint, location, photoBase64);
+                      setAiAnalysis(result);
+                    } catch (err) {
+                      console.warn(err);
+                    } finally {
+                      setIsAnalyzing(false);
+                    }
+                  }}
+                  disabled={isAnalyzing || complaint.trim().length < 5}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#15803D] rounded-xl text-xs font-bold border border-emerald-200 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>AI Summarize Problem</span>
+                </button>
+              </div>
               <textarea
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}
-                placeholder="What is leaking, broken, malfunctioning, or causing disruption? Include any relevant details..."
-                rows={4}
+                placeholder="Describe what is leaking, broken, sparking, or causing disruption (Hindi or English supported)..."
+                rows={3}
                 required
-                className="w-full text-xs sm:text-sm p-3.5 border border-mocha-200/90 rounded-2xl focus:ring-2 focus:ring-burgundy-700/20 focus:border-burgundy-700 transition-all resize-none placeholder:text-mocha-400 text-mocha-900 leading-relaxed bg-mocha-50/30"
+                className="w-full text-xs sm:text-sm p-3.5 border border-mocha-200/90 rounded-2xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all resize-none placeholder:text-mocha-400 text-gray-900 leading-relaxed bg-mocha-50/30"
               />
               <p className="text-[11px] text-mocha-500 mt-1 font-medium">
-                Include specific symptoms or duration (minimum 10 characters).
+                Type naturally — AI will extract symptoms, summarize, and categorize for dispatch.
               </p>
             </div>
 
-            {/* Campus Location */}
-            <div>
-              <label className="block text-xs font-bold text-mocha-900 mb-1.5">
-                Specific Campus Location <span className="text-burgundy-700">*</span>
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-mocha-400 absolute left-3.5 top-3.5" />
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Hostel 3, Block B, 2nd Floor Corridor Water Cooler"
-                  required
-                  className="w-full text-xs sm:text-sm pl-10 pr-3.5 py-3 border border-mocha-200/90 rounded-2xl focus:ring-2 focus:ring-burgundy-700/20 focus:border-burgundy-700 transition-all font-medium text-mocha-900 bg-mocha-50/30"
-                />
-              </div>
+            {/* Structured Campus 2D Blueprint Location Picker (No Randomness) */}
+            <div className="pt-1">
+              <CampusBlueprintPicker
+                value={location}
+                onChange={(newLoc) => setLocation(newLoc)}
+                defaultRoom={currentUser.roomNumber}
+              />
             </div>
 
             {/* Shared Location & Sensitivity Options */}
@@ -490,17 +512,17 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
                 type="submit"
                 form="raise-issue-form"
                 disabled={isAnalyzing}
-                className="flex items-center gap-2 px-5 py-2.5 bg-burgundy-900 hover:bg-burgundy-800 text-latte-50 text-xs font-extrabold rounded-2xl shadow-[0_4px_16px_rgba(37,3,9,0.3)] transition-all disabled:opacity-50 active:scale-95"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#16A34A] hover:bg-[#22C55E] text-white text-xs font-extrabold rounded-2xl shadow-[0_4px_16px_rgba(22,163,74,0.35)] transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
               >
                 {isAnalyzing ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-mocha-300" />
-                    <span>Analyzing with Gemini...</span>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>AI Summarizing Problem...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-mocha-300" />
-                    <span>Analyze & Review Ticket</span>
+                    <Sparkles className="w-4 h-4 text-emerald-200" />
+                    <span>AI Summarize & Submit</span>
                   </>
                 )}
               </button>
@@ -508,10 +530,10 @@ export const RaiseIssueModal: React.FC<RaiseIssueModalProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmSubmission}
-                className="flex items-center gap-2 px-5 py-2.5 bg-burgundy-900 hover:bg-burgundy-800 text-latte-50 text-xs font-extrabold rounded-2xl shadow-[0_4px_16px_rgba(37,3,9,0.3)] transition-all active:scale-95"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#16A34A] hover:bg-[#22C55E] text-white text-xs font-extrabold rounded-2xl shadow-[0_4px_16px_rgba(22,163,74,0.35)] transition-all active:scale-95 cursor-pointer"
               >
-                <CheckCircle className="w-4 h-4 text-mocha-300" />
-                <span>Confirm & Submit Report</span>
+                <CheckCircle className="w-4 h-4 text-white" />
+                <span>Confirm & Create Ticket</span>
               </button>
             )}
           </div>
