@@ -340,7 +340,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span className="text-[10px] font-bold text-mocha-200 uppercase tracking-wider font-mono">
                       24/7 Helplines
                     </span>

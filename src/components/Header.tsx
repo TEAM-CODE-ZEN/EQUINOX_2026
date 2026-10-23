@@ -83,12 +83,12 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
               {isDemoMode ? (
                 <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-burgundy-50 text-burgundy-900 border border-burgundy-200/80 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-burgundy-600 animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-burgundy-600"></span>
                   Demo Sandbox
                 </span>
               ) : (
                 <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
                   Live Cloud
                 </span>
               )}
@@ -180,7 +180,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-burgundy-700 text-[10px] font-extrabold text-latte-50 ring-2 ring-white shadow-sm animate-pulse-glow">
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-burgundy-700 text-[10px] font-extrabold text-latte-50 ring-2 ring-white shadow-sm">
                   {unreadCount}
                 </span>
               )}

@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Ticket, UserProfile } from '../types';
-import { formatRelativeTime } from '../utils/formatters';
+import { formatRelativeTime, getTicketPriorityBorderClass } from '../utils/formatters';
 
 interface ExecutiveDashboardViewProps {
   tickets: Ticket[];
@@ -68,7 +68,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
       case 'In Progress':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             Working on it
           </span>
         );
@@ -106,7 +106,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
     if (isHigh) {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
-          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-red-600"></span>
           High Priority
         </span>
       );
@@ -351,7 +351,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
               <div
                 key={ticket.id}
                 onClick={() => onSelectTicket(ticket)}
-                className="group relative bg-white border border-mocha-200/90 hover:border-emerald-300 rounded-2xl p-4 sm:p-5 shadow-subtle hover:shadow-card transition-all duration-200 cursor-pointer text-left select-none flex items-center justify-between gap-4"
+                className={`group relative rounded-2xl p-4 sm:p-5 shadow-subtle hover:shadow-card transition-all duration-200 cursor-pointer text-left select-none flex items-center justify-between gap-4 ${getTicketPriorityBorderClass(ticket)}`}
               >
                 {/* Department & Issue Name Only */}
                 <div className="space-y-1.5 min-w-0 flex-1">

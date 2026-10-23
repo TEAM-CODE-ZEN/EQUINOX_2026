@@ -45,7 +45,7 @@ export const getPriorityBadgeStyle = (priority: TicketPriority) => {
     case 'Critical':
       return {
         bg: 'text-rose-900 bg-rose-50/95 border-rose-200 shadow-sm',
-        dot: 'bg-rose-600 animate-pulse',
+        dot: 'bg-rose-600',
         label: 'Critical Priority',
       };
     case 'High':
@@ -126,3 +126,29 @@ export const formatRelativeTime = (isoString: string) => {
     return 'Recently';
   }
 };
+
+export const getTicketPriorityBorderClass = (t: {
+  affectedCount?: number;
+  reopenCount?: number;
+  priority?: TicketPriority;
+}): string => {
+  const affected = t.affectedCount || 1;
+  const reopens = t.reopenCount || 0;
+  const isHigh =
+    affected >= 5 ||
+    reopens > 0 ||
+    t.priority === 'Critical' ||
+    t.priority === 'High';
+
+  if (isHigh) {
+    return 'border-2 border-red-500 hover:border-red-600 bg-white hover:bg-red-50/20';
+  }
+
+  const isModerate = affected >= 2 || t.priority === 'Medium';
+  if (isModerate) {
+    return 'border-2 border-amber-400 hover:border-amber-500 bg-white hover:bg-amber-50/20';
+  }
+
+  return 'border-2 border-emerald-400 hover:border-emerald-500 bg-white hover:bg-emerald-50/20';
+};
+

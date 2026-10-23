@@ -42,7 +42,7 @@ export const HelpSafetyView: React.FC = () => {
       <div className="bg-white border border-mocha-200/90 rounded-3xl p-6 sm:p-7 shadow-subtle space-y-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-burgundy-600 animate-pulse"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-burgundy-600"></div>
             <h3 className="text-base sm:text-lg font-extrabold text-burgundy-950 tracking-tight">
               Verified 24/7 National Helplines (External & Free)
             </h3>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Ticket } from '../types';
+import { getTicketPriorityBorderClass } from '../utils/formatters';
 
 interface TicketCardProps {
   ticket: Ticket;
@@ -14,10 +15,12 @@ export const TicketCard: React.FC<TicketCardProps> = ({
   ticket,
   onSelect,
 }) => {
+  const borderClass = getTicketPriorityBorderClass(ticket);
+
   return (
     <div
       onClick={() => onSelect(ticket)}
-      className="group relative bg-white border border-mocha-200/90 hover:border-emerald-300 rounded-2xl p-4 sm:p-5 shadow-subtle hover:shadow-card transition-all duration-200 cursor-pointer text-left select-none flex items-center justify-between gap-4"
+      className={`group relative rounded-2xl p-4 sm:p-5 shadow-subtle hover:shadow-card transition-all duration-200 cursor-pointer text-left select-none flex items-center justify-between gap-4 ${borderClass}`}
     >
       {/* Department & Issue Name Only */}
       <div className="space-y-1.5 min-w-0 flex-1">

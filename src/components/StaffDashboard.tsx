@@ -82,7 +82,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         </div>
 
         <div className="flex items-center gap-2 text-xs font-mono font-semibold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/60 self-start sm:self-auto">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span>Live Synchronized</span>
         </div>
       </div>

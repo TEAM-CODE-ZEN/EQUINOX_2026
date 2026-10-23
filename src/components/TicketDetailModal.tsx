@@ -102,7 +102,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     if (isHigh) {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
-          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-red-600"></span>
           High Priority
         </span>
       );
@@ -148,7 +148,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   </span>
                 ) : ticket.status === 'In Progress' ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                     Working on it
                   </span>
                 ) : (
