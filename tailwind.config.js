@@ -31,19 +31,32 @@ export default {
           900: '#3D2617',
           950: '#27170D',
         },
-        // Deep Burgundy: Regal oxblood, vintage black-cherry, and luxurious wine
+        // Deep Forest Green: British racing green, velvet pine, and deep jade
         burgundy: {
-          50: '#FDF2F4',
-          100: '#FCE7EA',
-          200: '#F8CFD5',
-          300: '#F0A7B2',
-          400: '#DF697B',
-          500: '#C4364D',
-          600: '#9E1B31',
-          700: '#781022',
-          800: '#560917',
-          900: '#3D0610', // Prime Deep Burgundy
-          950: '#250309', // Deepest Oxblood Velvet
+          50: '#F0F9F4',
+          100: '#DCF2E4',
+          200: '#BCE5CD',
+          300: '#8ED2AD',
+          400: '#4CAE7B',
+          500: '#268E5A',
+          600: '#1A7246',
+          700: '#145A37',
+          800: '#0F442A',
+          900: '#0B331F', // Prime Deep Forest Green
+          950: '#061D12', // Deepest Velvet Pine / British Racing Green
+        },
+        forest: {
+          50: '#F0F9F4',
+          100: '#DCF2E4',
+          200: '#BCE5CD',
+          300: '#8ED2AD',
+          400: '#4CAE7B',
+          500: '#268E5A',
+          600: '#1A7246',
+          700: '#145A37',
+          800: '#0F442A',
+          900: '#0B331F',
+          950: '#061D12',
         },
         campus: {
           50: '#FAF6EE', // Cosmic Latte Canvas
@@ -53,29 +66,31 @@ export default {
           400: '#B08A6B',
           500: '#734E33',
           600: '#563823',
-          700: '#560917',
-          800: '#3D0610',
-          900: '#250309', // Deep Burgundy Core
-          950: '#180206',
+          700: '#145A37',
+          800: '#0B331F',
+          900: '#061D12', // Deep Forest Green Core
+          950: '#04130B',
         },
         brand: {
-          50: '#FDF2F4',
-          100: '#FCE7EA',
+          50: '#F0F9F4',
+          100: '#DCF2E4',
           200: '#EADBCB',
-          500: '#9E1B31',
-          600: '#781022',
-          700: '#560917',
-          800: '#3D0610',
-          900: '#250309',
+          500: '#268E5A',
+          600: '#1A7246',
+          700: '#145A37',
+          800: '#0B331F',
+          900: '#061D12',
         },
         accent: {
-          burgundy: '#781022',
+          burgundy: '#0B331F',
+          green: '#0B331F',
+          forest: '#0B331F',
           mocha: '#B08A6B',
           latte: '#FAF6EE',
           gold: '#C59B27',
           emerald: '#166534',
           amber: '#B45309',
-          rose: '#9E1B31',
+          rose: '#0B331F',
         }
       },
       fontFamily: {
@@ -83,11 +98,12 @@ export default {
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        'subtle': '0 1px 3px 0 rgba(61, 6, 16, 0.04), 0 1px 2px -1px rgba(61, 6, 16, 0.03)',
-        'card': '0 4px 20px -2px rgba(61, 6, 16, 0.06), 0 2px 6px -1px rgba(61, 6, 16, 0.03)',
-        'elevated': '0 20px 40px -8px rgba(37, 3, 9, 0.22), 0 8px 16px -4px rgba(37, 3, 9, 0.08)',
-        'glass': '0 8px 32px 0 rgba(61, 6, 16, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)',
-        'glow-burgundy': '0 0 28px -4px rgba(120, 16, 34, 0.45)',
+        'subtle': '0 1px 3px 0 rgba(11, 51, 31, 0.04), 0 1px 2px -1px rgba(11, 51, 31, 0.03)',
+        'card': '0 4px 20px -2px rgba(11, 51, 31, 0.06), 0 2px 6px -1px rgba(11, 51, 31, 0.03)',
+        'elevated': '0 20px 40px -8px rgba(6, 29, 18, 0.22), 0 8px 16px -4px rgba(6, 29, 18, 0.08)',
+        'glass': '0 8px 32px 0 rgba(11, 51, 31, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)',
+        'glow-burgundy': '0 0 28px -4px rgba(20, 90, 55, 0.45)',
+        'glow-green': '0 0 28px -4px rgba(20, 90, 55, 0.45)',
         'glow-mocha': '0 0 24px -4px rgba(176, 138, 107, 0.4)',
         'inner-light': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.8)',
       }

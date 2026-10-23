@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       shortLabel: 'Gate Pass',
       icon: QrCode,
       badge: gatePassCount !== undefined && gatePassCount > 0 ? `${gatePassCount}` : 'Pass',
-      badgeColor: 'bg-[#560917] text-latte-50 font-bold',
+      badgeColor: 'bg-[#145A37] text-latte-50 font-bold',
       isAction: true,
     },
     {
@@ -142,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         <div
-          className={`h-full min-h-[calc(100vh-6.5rem)] rounded-[32px] bg-[#1F0307] text-latte-50 flex flex-col justify-between p-3.5 border border-burgundy-900/80 shadow-[0_12px_36px_rgba(31,3,7,0.35)] transition-all`}
+          className={`h-full min-h-[calc(100vh-6.5rem)] rounded-[32px] bg-[#061D12] text-latte-50 flex flex-col justify-between p-3.5 border border-burgundy-900/80 shadow-[0_12px_36px_rgba(6,29,18,0.35)] transition-all`}
         >
           {/* Top Section */}
           <div className="space-y-4">
@@ -152,11 +152,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   onClick={onApplyGatePass}
                   title="Apply for Gate Pass"
-                  className="w-11 h-11 rounded-2xl bg-[#3D0610] hover:bg-[#560917] text-latte-50 flex items-center justify-center border border-burgundy-700/60 shadow-md transition-all active:scale-95 group relative"
+                  className="w-11 h-11 rounded-2xl bg-[#0B331F] hover:bg-[#145A37] text-latte-50 flex items-center justify-center border border-burgundy-700/60 shadow-md transition-all active:scale-95 group relative"
                 >
                   <Plus className="w-5 h-5 stroke-[2.5] text-mocha-300 group-hover:rotate-90 transition-transform duration-200" />
                   {/* Tooltip */}
-                  <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#1F0307] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50">
+                  <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#061D12] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50">
                     Apply for Gate Pass
                   </div>
                 </button>
@@ -209,15 +209,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <Icon className="w-5 h-5" />
                         {/* Status notification dot on collapsed icon */}
                         {item.badge && (
-                          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-burgundy-500 ring-2 ring-[#1F0307]"></span>
+                          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-burgundy-500 ring-2 ring-[#061D12]"></span>
                         )}
                       </button>
 
                       {/* Tooltip on hover */}
-                      <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1F0307] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50 flex items-center gap-2">
+                      <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#061D12] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50 flex items-center gap-2">
                         <span>{item.label}</span>
                         {item.badge && (
-                          <span className="text-[10px] font-mono font-bold bg-[#3D0610] text-mocha-200 px-1.5 py-0.2 rounded-md">
+                          <span className="text-[10px] font-mono font-bold bg-[#0B331F] text-mocha-200 px-1.5 py-0.2 rounded-md">
                             {item.badge}
                           </span>
                         )}
@@ -302,9 +302,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         </button>
 
                         {/* Tooltip */}
-                        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1F0307] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50 flex items-center gap-2">
+                        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#061D12] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50 flex items-center gap-2">
                           <span>{item.label}</span>
-                          <span className="text-[10px] font-mono font-bold bg-[#3D0610] text-mocha-200 px-1.5 py-0.2 rounded-md">
+                          <span className="text-[10px] font-mono font-bold bg-[#0B331F] text-mocha-200 px-1.5 py-0.2 rounded-md">
                             {item.badge}
                           </span>
                         </div>
@@ -384,10 +384,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className="w-full h-full rounded-full object-cover"
                     />
                   </div>
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#1F0307]"></span>
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#061D12]"></span>
 
                   {isCollapsed && (
-                    <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1F0307] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50">
+                    <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#061D12] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-burgundy-700/60 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50">
                       {currentUser.name} ({currentUser.role})
                     </div>
                   )}
@@ -427,7 +427,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* ==================================================================== */}
       {/* Mobile Bottom Navigation Bar                                         */}
       {/* ==================================================================== */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1F0307]/95 backdrop-blur-xl border-t border-burgundy-900/80 px-2 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(31,3,7,0.4)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#061D12]/95 backdrop-blur-xl border-t border-burgundy-900/80 px-2 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(6,29,18,0.4)]">
         {navItems.slice(0, 4).map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;

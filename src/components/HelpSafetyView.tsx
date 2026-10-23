@@ -23,7 +23,7 @@ export const HelpSafetyView: React.FC = () => {
   return (
     <div className="space-y-6 text-left max-w-4xl mx-auto pb-8">
       {/* Disclaimer Banner */}
-      <div className="p-5 bg-gradient-to-r from-burgundy-950 via-burgundy-900 to-[#560917] border border-burgundy-800/80 rounded-3xl flex items-start gap-3.5 shadow-lg text-latte-50">
+      <div className="p-5 bg-gradient-to-r from-burgundy-950 via-burgundy-900 to-[#145A37] border border-burgundy-800/80 rounded-3xl flex items-start gap-3.5 shadow-lg text-latte-50">
         <div className="w-10 h-10 rounded-2xl bg-burgundy-800 text-latte-100 flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5 border border-burgundy-700">
           <AlertOctagon className="w-5 h-5 text-mocha-300" />
         </div>

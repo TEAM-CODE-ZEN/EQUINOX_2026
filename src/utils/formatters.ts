@@ -44,8 +44,8 @@ export const getPriorityBadgeStyle = (priority: TicketPriority) => {
   switch (priority) {
     case 'Critical':
       return {
-        bg: 'text-burgundy-900 bg-burgundy-50/95 border-burgundy-200 shadow-sm',
-        dot: 'bg-burgundy-600 animate-pulse',
+        bg: 'text-rose-900 bg-rose-50/95 border-rose-200 shadow-sm',
+        dot: 'bg-rose-600 animate-pulse',
         label: 'Critical Priority',
       };
     case 'High':

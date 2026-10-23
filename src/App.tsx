@@ -545,7 +545,7 @@ export const App: React.FC = () => {
             <div className="space-y-4">
               {/* Campus Pulse Hero Statistics Banner */}
               {activeTab === 'feed' && (
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-[#560917] text-latte-50 p-5 sm:p-6 shadow-[0_12px_36px_-6px_rgba(37,3,9,0.35)] border border-burgundy-700/60">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-[#145A37] text-latte-50 p-5 sm:p-6 shadow-[0_12px_36px_-6px_rgba(6,29,18,0.35)] border border-burgundy-700/60">
                   {/* Subtle Background Glow Elements */}
                   <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-mocha-500/10 rounded-full blur-3xl pointer-events-none"></div>
                   <div className="absolute bottom-0 left-1/3 -mb-10 w-64 h-64 bg-burgundy-500/15 rounded-full blur-3xl pointer-events-none"></div>
