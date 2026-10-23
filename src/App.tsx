@@ -545,7 +545,7 @@ export const App: React.FC = () => {
             <div className="space-y-4">
               {/* Campus Pulse Hero Statistics Banner */}
               {activeTab === 'feed' && (
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-[#145A37] text-latte-50 p-5 sm:p-6 shadow-[0_12px_36px_-6px_rgba(6,29,18,0.35)] border border-burgundy-700/60">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#14532D] via-[#16A34A] to-[#22C55E] text-white p-5 sm:p-6 shadow-[0_12px_36px_-6px_rgba(22,163,74,0.35)] border border-emerald-400/40">
                   {/* Subtle Background Glow Elements */}
                   <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-mocha-500/10 rounded-full blur-3xl pointer-events-none"></div>
                   <div className="absolute bottom-0 left-1/3 -mb-10 w-64 h-64 bg-burgundy-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -925,10 +925,10 @@ export const App: React.FC = () => {
       <div className="fixed bottom-20 md:bottom-8 right-6 z-40">
         <button
           onClick={() => setShowRaiseModal(true)}
-          className="flex items-center gap-2 px-5 py-3.5 bg-burgundy-900 hover:bg-burgundy-800 text-latte-50 rounded-2xl shadow-[0_12px_28px_rgba(37,3,9,0.35)] hover:shadow-[0_16px_36px_rgba(37,3,9,0.45)] font-bold text-xs tracking-wide transition-all transform hover:-translate-y-1 active:scale-95 ring-2 ring-mocha-200/40"
+          className="flex items-center gap-2 px-5 py-3.5 bg-[#16A34A] hover:bg-[#22C55E] text-white rounded-2xl shadow-[0_12px_28px_rgba(22,163,74,0.35)] hover:shadow-[0_16px_36px_rgba(22,163,74,0.45)] font-bold text-xs tracking-wide transition-all transform hover:-translate-y-1 active:scale-95 ring-2 ring-emerald-300/40"
         >
-          <div className="w-5 h-5 rounded-lg bg-burgundy-950/80 flex items-center justify-center">
-            <Plus className="w-4 h-4 text-mocha-300 stroke-[2.5]" />
+          <div className="w-5 h-5 rounded-lg bg-emerald-950/50 flex items-center justify-center">
+            <Plus className="w-4 h-4 text-emerald-200 stroke-[2.5]" />
           </div>
           <span>Raise Campus Concern</span>
         </button>

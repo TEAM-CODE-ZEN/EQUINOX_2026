@@ -139,18 +139,18 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
       {/* ---------------------------------------------------------------------- */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
         <div>
-          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-sans font-light tracking-tight text-[#061D12] leading-[1.15]">
+          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-sans font-light tracking-tight text-[#14532D] leading-[1.15]">
             <span className="font-normal">Managing</span>{' '}
             <span className="inline-flex items-center justify-center align-middle w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-mocha-200 shadow-sm mx-1 text-mocha-700">
               <span className="text-sm">🏨</span>
             </span>{' '}
-            <span className="font-semibold text-burgundy-950">Hostel Life</span>
+            <span className="font-semibold text-[#15803D]">Hostel Life</span>
             <br />
             <span className="font-normal">and</span>{' '}
-            <span className="inline-flex items-center justify-center align-middle w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#EAD890] border border-mocha-300 shadow-sm mx-1 text-burgundy-950">
-              <Sparkles className="w-4 h-4 text-burgundy-900 fill-burgundy-800" />
+            <span className="inline-flex items-center justify-center align-middle w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#EAD890] border border-mocha-300 shadow-sm mx-1 text-emerald-950">
+              <Sparkles className="w-4 h-4 text-emerald-800 fill-emerald-700" />
             </span>{' '}
-            <span className="font-semibold text-burgundy-950">Workflows</span>
+            <span className="font-semibold text-[#15803D]">Workflows</span>
           </h1>
         </div>
 
@@ -159,16 +159,16 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
           <button
             onClick={onOpenSettings}
             title="Settings & Switch User"
-            className="w-11 h-11 rounded-2xl bg-white hover:bg-latte-50 text-mocha-700 hover:text-burgundy-900 border border-mocha-200/90 shadow-sm flex items-center justify-center transition-all active:scale-95 duration-150"
+            className="w-11 h-11 rounded-2xl bg-white hover:bg-latte-50 text-mocha-700 hover:text-emerald-800 border border-mocha-200/90 shadow-sm flex items-center justify-center transition-all active:scale-95 duration-150"
           >
             <Settings className="w-5 h-5 stroke-[1.8]" />
           </button>
 
           <button
             onClick={onApplyGatePass}
-            className="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-[#061D12] hover:bg-[#0B331F] text-latte-50 text-xs sm:text-sm font-semibold tracking-tight shadow-[0_4px_16px_rgba(6,29,18,0.35)] transition-all duration-200 active:scale-95 group"
+            className="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-[#16A34A] hover:bg-[#22C55E] text-white text-xs sm:text-sm font-semibold tracking-tight shadow-[0_4px_16px_rgba(22,163,74,0.35)] transition-all duration-200 active:scale-95 group"
           >
-            <Plus className="w-4 h-4 stroke-[2.5] text-mocha-300 group-hover:rotate-90 transition-transform duration-200" />
+            <Plus className="w-4 h-4 stroke-[2.5] text-latte-100 group-hover:rotate-90 transition-transform duration-200" />
             <span>Apply for Gate Pass</span>
           </button>
         </div>
@@ -180,7 +180,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
         <button
           onClick={() => onNavigateTab('overview')}
-          className="px-5 py-2 rounded-full bg-[#061D12] text-latte-50 text-xs font-semibold shadow-sm transition-all flex-shrink-0"
+          className="px-5 py-2 rounded-full bg-[#16A34A] text-white text-xs font-semibold shadow-sm transition-all flex-shrink-0"
         >
           Overview
         </button>
@@ -275,11 +275,11 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
 
           {/* 8 Capsule Progress Bars matching image */}
           <div className="flex items-center gap-1.5 pt-1">
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
             <div className="h-9 w-4 rounded-full bg-mocha-100 border border-mocha-200"></div>
             <div className="h-9 w-4 rounded-full bg-mocha-100 border border-mocha-200"></div>
             <div className="h-9 w-4 rounded-full bg-mocha-100 border border-mocha-200"></div>
@@ -317,10 +317,10 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
 
           {/* 8 Capsule Progress Bars matching image */}
           <div className="flex items-center gap-1.5 pt-1">
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
-            <div className="h-9 w-4 rounded-full bg-[#061D12]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
+            <div className="h-9 w-4 rounded-full bg-[#22C55E]"></div>
             <div className="h-9 w-4 rounded-full bg-white/60 border border-mocha-300"></div>
             <div className="h-9 w-4 rounded-full bg-white/60 border border-mocha-300"></div>
             <div className="h-9 w-4 rounded-full bg-white/60 border border-mocha-300"></div>
@@ -328,32 +328,32 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Card 3: Take Your Automation to the Next Level (Deep Forest Green Gradient) */}
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#061D12] via-[#0B331F] to-[#145A37] p-5 sm:p-6 text-latte-50 shadow-[0_8px_24px_rgba(6,29,18,0.3)] flex flex-col justify-between border border-burgundy-800/60">
+        {/* Card 3: Take Your Automation to the Next Level (Vibrant Light Green Gradient) */}
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#14532D] via-[#16A34A] to-[#22C55E] p-5 sm:p-6 text-latte-50 shadow-[0_8px_24px_rgba(22,163,74,0.3)] flex flex-col justify-between border border-emerald-400/40">
           {/* Subtle glow circle and background artwork accent */}
-          <div className="absolute top-0 right-0 w-36 h-36 bg-mocha-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full border border-burgundy-700/30 pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full border border-white/20 pointer-events-none"></div>
 
           <div>
             <div className="flex items-center justify-between">
-              <div className="inline-flex items-center gap-1.5 text-xs text-mocha-300 font-medium">
+              <div className="inline-flex items-center gap-1.5 text-xs text-mocha-100 font-medium">
                 <span>Take You</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-mocha-300" />
+                <ArrowUpRight className="w-3.5 h-3.5 text-mocha-100" />
               </div>
             </div>
             <h3 className="text-lg sm:text-xl font-sans font-light tracking-tight text-white mt-1 leading-snug">
               Automation <br />
-              <span className="font-semibold text-latte-100">to the Next Level</span>
+              <span className="font-semibold text-white">to the Next Level</span>
             </h3>
           </div>
 
           <div className="mt-6 flex items-center justify-between gap-3">
             <button
               onClick={onApplyGatePass}
-              className="px-6 py-2.5 rounded-full bg-white hover:bg-latte-100 text-[#061D12] text-xs font-bold tracking-tight shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-full bg-white hover:bg-latte-100 text-[#15803D] text-xs font-bold tracking-tight shadow-md transition-all active:scale-95 flex items-center gap-1.5"
             >
               <span>Upgrade</span>
-              <Play className="w-3 h-3 fill-[#061D12] stroke-none" />
+              <Play className="w-3 h-3 fill-[#15803D] stroke-none" />
             </button>
 
             {/* Glowing avatar ring indicator */}
@@ -386,7 +386,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
             {/* Legend & Year Selector */}
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#061D12]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]"></span>
                 <span className="text-mocha-700 font-medium">Operations</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -434,20 +434,20 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
                   >
                     {/* Hover Floating Details Tooltip */}
                     {isHovered && (
-                      <div className="absolute -top-12 z-30 px-3 py-1.5 rounded-xl bg-[#061D12] text-latte-50 text-[11px] font-mono shadow-xl border border-burgundy-700/60 whitespace-nowrap animate-in fade-in zoom-in-95 duration-150">
-                        <span className="font-bold text-mocha-300">{item.day}: </span>
+                      <div className="absolute -top-12 z-30 px-3 py-1.5 rounded-xl bg-[#134229] text-latte-50 text-[11px] font-mono shadow-xl border border-emerald-500/50 whitespace-nowrap animate-in fade-in zoom-in-95 duration-150">
+                        <span className="font-bold text-emerald-300">{item.day}: </span>
                         <span>{item.opCount} Ops</span> • <span>{item.gpCount} Passes</span>
                       </div>
                     )}
 
                     {/* Peak Floating Badges (Matching Screenshot) */}
                     {item.badgeTop && (
-                      <div className="absolute top-[18%] -right-1 z-20 px-1.5 py-0.5 rounded-md bg-[#061D12] text-latte-50 text-[10px] font-bold font-mono shadow-sm">
+                      <div className="absolute top-[18%] -right-1 z-20 px-1.5 py-0.5 rounded-md bg-[#16A34A] text-white text-[10px] font-bold font-mono shadow-sm">
                         {item.badgeTop}
                       </div>
                     )}
                     {item.badgeBottom && (
-                      <div className="absolute bottom-[44%] -left-1 z-20 px-1.5 py-0.5 rounded-md bg-[#EAD890] text-[#061D12] text-[10px] font-bold font-mono shadow-sm border border-mocha-300">
+                      <div className="absolute bottom-[44%] -left-1 z-20 px-1.5 py-0.5 rounded-md bg-[#DCFCE7] text-[#15803D] text-[10px] font-bold font-mono shadow-sm border border-emerald-300">
                         {item.badgeBottom}
                       </div>
                     )}
@@ -463,10 +463,10 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
                     ) : (
                       /* Dual Capsule Overlapping Bars */
                       <div className="w-5 sm:w-7 flex flex-col items-center relative transition-transform duration-200 group-hover:scale-105">
-                        {/* Upper Dark Burgundy Capsule */}
+                        {/* Upper Vibrant Light Green Capsule */}
                         <div
                           style={{ height: `${item.operations * 180}px` }}
-                          className="w-full rounded-full bg-[#061D12] relative flex flex-col items-center justify-start pt-1.5 shadow-sm"
+                          className="w-full rounded-full bg-[#22C55E] relative flex flex-col items-center justify-start pt-1.5 shadow-sm"
                         >
                           <span className="w-2 h-2 rounded-full bg-white/90"></span>
                         </div>
@@ -476,7 +476,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
                           style={{ height: `${item.gatePasses * 160}px` }}
                           className="-mt-8 w-full rounded-full bg-[#EAD890] relative flex flex-col items-center justify-start pt-1.5 shadow-sm border border-mocha-300/40"
                         >
-                          <span className="w-2 h-2 rounded-full bg-[#061D12]"></span>
+                          <span className="w-2 h-2 rounded-full bg-[#15803D]"></span>
                         </div>
                       </div>
                     )}
@@ -485,7 +485,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
                     <span
                       className={`text-[11px] font-mono mt-3 transition-colors ${
                         item.day === '1 Jul'
-                          ? 'font-bold text-[#061D12]'
+                          ? 'font-bold text-[#15803D]'
                           : 'text-mocha-500 group-hover:text-mocha-900'
                       }`}
                     >
