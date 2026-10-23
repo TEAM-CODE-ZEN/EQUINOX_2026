@@ -9,7 +9,6 @@ import {
   ShieldAlert,
   BookmarkCheck,
   PhoneCall,
-  QrCode,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -25,8 +24,6 @@ interface SidebarProps {
   unreadCount: number;
   openIssuesCount: number;
   myIssuesCount: number;
-  onApplyGatePass?: () => void;
-  gatePassCount?: number;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
@@ -38,8 +35,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   unreadCount,
   openIssuesCount,
   myIssuesCount,
-  onApplyGatePass,
-  gatePassCount,
   isCollapsed = false,
   onToggleCollapse,
 }) => {
@@ -56,15 +51,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Overview',
           shortLabel: 'Overview',
           icon: Layers,
-        },
-        {
-          id: 'gate-pass',
-          label: 'Apply for Gate Pass',
-          shortLabel: 'Gate Pass',
-          icon: QrCode,
-          badge: gatePassCount !== undefined && gatePassCount > 0 ? `${gatePassCount}` : 'Pass',
-          badgeColor: 'bg-[#16A34A] text-white font-bold',
-          isAction: true,
         },
         {
           id: 'my-issues',
@@ -84,18 +70,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     : [
         {
           id: 'overview',
-          label: 'Executive Overview',
+          label: 'Hostel Overview',
           shortLabel: 'Overview',
           icon: Layers,
-        },
-        {
-          id: 'gate-pass',
-          label: 'Gate Pass Clearance',
-          shortLabel: 'Gate Pass',
-          icon: QrCode,
-          badge: gatePassCount !== undefined && gatePassCount > 0 ? `${gatePassCount}` : 'Pass',
-          badgeColor: 'bg-[#16A34A] text-white font-bold',
-          isAction: true,
         },
         {
           id: 'feed',
@@ -176,15 +153,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-2'} pt-1`}>
               {isCollapsed ? (
                 <button
-                  onClick={onApplyGatePass}
-                  title="Apply for Gate Pass"
-                  className="w-11 h-11 rounded-2xl bg-[#16A34A] hover:bg-[#22C55E] text-white flex items-center justify-center border border-emerald-400/50 shadow-md transition-all active:scale-95 group relative"
+                  onClick={onToggleCollapse}
+                  title="Expand sidebar"
+                  className="w-11 h-11 rounded-2xl bg-burgundy-900/60 hover:bg-burgundy-900 text-mocha-300 hover:text-white flex items-center justify-center border border-burgundy-700/60 transition-all active:scale-95"
                 >
-                  <Plus className="w-5 h-5 stroke-[2.5] text-latte-100 group-hover:rotate-90 transition-transform duration-200" />
-                  {/* Tooltip */}
-                  <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#134229] text-latte-50 text-xs font-semibold rounded-xl shadow-xl border border-emerald-600/50 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50">
-                    Apply for Gate Pass
-                  </div>
+                  <Layers className="w-5 h-5" />
                 </button>
               ) : (
                 <>
@@ -220,12 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   return (
                     <div key={item.id} className="relative group flex justify-center">
                       <button
-                        onClick={() => {
-                          onSelectTab(item.id);
-                          if (item.id === 'gate-pass') {
-                            onApplyGatePass?.();
-                          }
-                        }}
+                        onClick={() => onSelectTab(item.id)}
                         className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-95 relative ${
                           isActive
                             ? 'bg-white/15 text-white shadow-inner ring-1 ring-white/20'
@@ -255,12 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      onSelectTab(item.id);
-                      if (item.id === 'gate-pass') {
-                        onApplyGatePass?.();
-                      }
-                    }}
+                    onClick={() => onSelectTab(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 active:scale-95 ${
                       isActive
                         ? 'bg-white/15 text-white shadow-[0_4px_16px_rgba(0,0,0,0.25)] ring-1 ring-white/20'
@@ -283,9 +246,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {item.badge && (
                       <span
                         className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full font-mono ${
-                          item.badgeColor
-                            ? item.badgeColor
-                            : isActive
+                          isActive
                             ? 'bg-burgundy-950 text-mocha-200'
                             : 'bg-burgundy-900 text-mocha-300'
                         }`}
@@ -460,12 +421,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => {
-                onSelectTab(item.id);
-                if (item.id === 'gate-pass') {
-                  onApplyGatePass?.();
-                }
-              }}
+              onClick={() => onSelectTab(item.id)}
               className={`flex flex-col items-center py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 ${
                 isActive ? 'text-latte-50 font-extrabold' : 'text-mocha-400 hover:text-latte-100'
               }`}

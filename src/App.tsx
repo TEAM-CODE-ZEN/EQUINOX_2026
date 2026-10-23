@@ -30,12 +30,6 @@ import {
   AdminGovernanceView,
 } from './components/AdminGovernanceView';
 import {
-  ApplyGatePassModal,
-} from './components/ApplyGatePassModal';
-import {
-  GatePassView,
-} from './components/GatePassView';
-import {
   ExecutiveDashboardView,
 } from './components/ExecutiveDashboardView';
 import { DEMO_USERS } from './services/mockData';
@@ -49,7 +43,6 @@ import {
   Announcement,
   CampusEvent,
   NotificationItem,
-  GatePass,
 } from './types';
 import { dataStore } from './services/dataStore';
 import { firestoreService } from './services/firestoreService';
@@ -112,14 +105,9 @@ export const App: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>(() =>
     dataStore.getNotifications(dataStore.getCurrentUser().uid)
   );
-  const [gatePasses, setGatePasses] = useState<GatePass[]>(() =>
-    dataStore.getGatePasses()
-  );
-
   // Active Modals
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showRaiseModal, setShowRaiseModal] = useState(false);
-  const [showGatePassModal, setShowGatePassModal] = useState(false);
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -189,7 +177,6 @@ export const App: React.FC = () => {
     setAnnouncements([...dataStore.getAnnouncements()]);
     setEvents([...dataStore.getEvents()]);
     setNotifications([...dataStore.getNotifications(currentUser.uid)]);
-    setGatePasses([...dataStore.getGatePasses()]);
   };
 
   // Reset demo
@@ -348,25 +335,7 @@ export const App: React.FC = () => {
     showToast('Campus event added to calendar');
   };
 
-  // Gate Pass Actions
-  const handleApplyGatePass = (newPass: GatePass) => {
-    dataStore.applyGatePass(newPass);
-    refreshData();
-    showToast(`Gate Pass #${newPass.passNumber} submitted for Chief Warden review!`, 'success');
-    setActiveTab('gate-pass');
-  };
 
-  const handleReviewGatePass = (passId: string, status: 'Approved' | 'Rejected', reason?: string) => {
-    dataStore.reviewGatePass(passId, status, currentUser, reason);
-    refreshData();
-    showToast(`Gate Pass marked as ${status}. Student notified.`, status === 'Approved' ? 'success' : 'warning');
-  };
-
-  const handleRecordSecurityStatus = (passId: string, action: 'checkout' | 'checkin') => {
-    dataStore.recordGatePassSecurity(passId, action);
-    refreshData();
-    showToast(action === 'checkout' ? 'Security gate exit check-out logged.' : 'Security gate safe return recorded.', 'info');
-  };
 
   // Notification controls
   const handleMarkNotificationAsRead = (id: string) => {
@@ -508,26 +477,21 @@ export const App: React.FC = () => {
           unreadCount={notifications.filter((n) => !n.read).length}
           openIssuesCount={openCount}
           myIssuesCount={myIssuesCount}
-          onApplyGatePass={() => setShowGatePassModal(true)}
-          gatePassCount={gatePasses.filter((g) => g.status === 'Pending Warden Approval' || g.status === 'Approved').length}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
         />
 
         {/* Dynamic Main Content Area */}
         <main className="flex-1 min-w-0 pb-12">
-          {/* Tab 0: Executive Overview Dashboard (Matching Image UI Layout) */}
+          {/* Tab 0: Executive Overview Dashboard */}
           {activeTab === 'overview' && (
             <ExecutiveDashboardView
               tickets={tickets}
-              gatePasses={gatePasses}
               currentUser={currentUser}
-              onApplyGatePass={() => setShowGatePassModal(true)}
               onReportConcern={() => setShowRaiseModal(true)}
               onSelectTicket={(t) => setSelectedTicket(t)}
               onNavigateTab={(tab) => setActiveTab(tab)}
               openIssuesCount={openCount}
-              gatePassCount={gatePasses.filter((g) => g.status === 'Pending Warden Approval' || g.status === 'Approved').length}
               onToggleEndorse={(id, e) => handleToggleEndorse(id, e)}
               onOpenSettings={() => {
                 const nextUser = currentUser.role === 'Student'
@@ -908,17 +872,6 @@ export const App: React.FC = () => {
           {activeTab === 'admin-management' && (
             <AdminGovernanceView currentUser={currentUser} />
           )}
-
-          {/* Tab 9: Gate Pass Clearance */}
-          {activeTab === 'gate-pass' && (
-            <GatePassView
-              gatePasses={gatePasses}
-              currentUser={currentUser}
-              onOpenApplyModal={() => setShowGatePassModal(true)}
-              onReviewGatePass={handleReviewGatePass}
-              onRecordSecurityStatus={handleRecordSecurityStatus}
-            />
-          )}
         </main>
       </div>
 
@@ -947,15 +900,6 @@ export const App: React.FC = () => {
             const t = dataStore.getTicketById(existingId);
             if (t) setSelectedTicket(t);
           }}
-        />
-      )}
-
-      {/* Apply Gate Pass Modal */}
-      {showGatePassModal && (
-        <ApplyGatePassModal
-          currentUser={currentUser}
-          onClose={() => setShowGatePassModal(false)}
-          onSubmitGatePass={handleApplyGatePass}
         />
       )}
 
