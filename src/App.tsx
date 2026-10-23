@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Header,
 } from './components/Header';
@@ -41,6 +41,8 @@ import {
   NotificationItem,
 } from './types';
 import { dataStore } from './services/dataStore';
+import { firestoreService } from './services/firestoreService';
+import { isDemoMode } from './services/firebase';
 import {
   Plus,
   Search,
@@ -90,6 +92,19 @@ export const App: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Real-time Firestore sync when live Firebase is configured
+  useEffect(() => {
+    if (!isDemoMode) {
+      firestoreService.initFirestoreCollections();
+      const unsubscribe = firestoreService.subscribeTickets((liveTickets) => {
+        if (liveTickets && liveTickets.length > 0) {
+          setTickets(liveTickets);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
   // Sync state whenever currentUser changes
   const handleSelectUser = (user: UserProfile) => {
     setCurrentUser(user);
@@ -122,6 +137,9 @@ export const App: React.FC = () => {
     if (e) e.stopPropagation();
     const result = dataStore.toggleEndorsement(ticketId, currentUser.uid);
     if (result.success) {
+      if (!isDemoMode) {
+        firestoreService.toggleEndorsement(ticketId, currentUser.uid, currentUser.name);
+      }
       refreshData();
       if (selectedTicket && selectedTicket.id === ticketId) {
         setSelectedTicket(dataStore.getTicketById(ticketId) || null);
@@ -137,6 +155,9 @@ export const App: React.FC = () => {
   // Ticket Created
   const handleTicketCreated = (newTicket: Ticket) => {
     dataStore.saveTicket(newTicket);
+    if (!isDemoMode) {
+      firestoreService.saveTicket(newTicket);
+    }
     refreshData();
     setSelectedTicket(newTicket);
     showToast(`Ticket ${newTicket.ticketNumber} created successfully!`);
@@ -150,6 +171,9 @@ export const App: React.FC = () => {
   ) => {
     const ok = dataStore.updateTicketStatus(ticketId, status, currentUser, notes);
     if (ok) {
+      if (!isDemoMode) {
+        firestoreService.updateTicketStatus(ticketId, status, currentUser, notes);
+      }
       refreshData();
       if (selectedTicket && selectedTicket.id === ticketId) {
         setSelectedTicket(dataStore.getTicketById(ticketId) || null);
@@ -166,6 +190,9 @@ export const App: React.FC = () => {
   ) => {
     const ok = dataStore.assignTicket(ticketId, staffUid, staffName, currentUser);
     if (ok) {
+      if (!isDemoMode) {
+        firestoreService.assignTicket(ticketId, staffUid, staffName, currentUser);
+      }
       refreshData();
       if (selectedTicket && selectedTicket.id === ticketId) {
         setSelectedTicket(dataStore.getTicketById(ticketId) || null);
@@ -197,7 +224,7 @@ export const App: React.FC = () => {
     content: string,
     isInternal: boolean
   ) => {
-    dataStore.addComment({
+    const newComment = {
       id: `cmt-${Date.now()}`,
       ticketId,
       authorUid: currentUser.uid,
@@ -207,7 +234,11 @@ export const App: React.FC = () => {
       content,
       isInternal,
       createdAt: new Date().toISOString(),
-    });
+    };
+    dataStore.addComment(newComment);
+    if (!isDemoMode) {
+      firestoreService.addComment(newComment);
+    }
     refreshData();
     showToast(isInternal ? 'Internal staff note added' : 'Comment posted');
   };
@@ -232,12 +263,18 @@ export const App: React.FC = () => {
   // Announcements & Events
   const handleAddAnnouncement = (ann: Announcement) => {
     dataStore.addAnnouncement(ann);
+    if (!isDemoMode) {
+      firestoreService.addAnnouncement(ann);
+    }
     refreshData();
     showToast('Campus announcement broadcasted');
   };
 
   const handleAddEvent = (evt: CampusEvent) => {
     dataStore.addEvent(evt);
+    if (!isDemoMode) {
+      firestoreService.addEvent(evt);
+    }
     refreshData();
     showToast('Campus event added to calendar');
   };

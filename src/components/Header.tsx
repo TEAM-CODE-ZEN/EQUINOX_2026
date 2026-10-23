@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { UserProfile, NotificationItem, CampusEvent } from '../types';
 import { DEMO_USERS } from '../services/mockData';
+import { isDemoMode } from '../services/firebase';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -52,9 +53,16 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-lg text-slate-900 tracking-tight">CampusAccord</span>
-              <span className="hidden sm:inline-block text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200/60">
-                AIT Campus
-              </span>
+              {isDemoMode ? (
+                <span className="hidden sm:inline-block text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200/60">
+                  Demo Mode
+                </span>
+              ) : (
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Firebase Connected
+                </span>
+              )}
             </div>
             <p className="hidden md:block text-xs text-slate-500 font-medium">
               Every concern heard. Every action tracked.
