@@ -96,6 +96,40 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
     }
   };
 
+  const getPriorityBadge = (t: Ticket) => {
+    const isHigh =
+      t.affectedCount >= 5 ||
+      t.reopenCount > 0 ||
+      t.priority === 'Critical' ||
+      t.priority === 'High';
+
+    if (isHigh) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
+          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+          High Priority
+        </span>
+      );
+    }
+
+    const isModerate = t.affectedCount >= 2 || t.priority === 'Medium';
+    if (isModerate) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+          Moderate
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+        <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+        Normal
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300 max-w-5xl mx-auto">
       {/* ---------------------------------------------------------------------- */}
@@ -327,16 +361,10 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
                   <div className="space-y-2 min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {getStatusBadge(ticket.status)}
+                      {getPriorityBadge(ticket)}
                       <span className="text-xs font-bold text-[#15803D] bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200/80">
                         {ticket.category}
                       </span>
-                      {/* AI Duplicate Detection / Combined Badge */}
-                      {isCombined && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50/90 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                          <Sparkles className="w-3 h-3 text-emerald-600" />
-                          <span>AI Combined ({ticket.affectedCount} reports)</span>
-                        </span>
-                      )}
                     </div>
 
                     {/* Big Readable Title */}
@@ -370,7 +398,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
                     {onToggleEndorse && ticket.status !== 'Resolved' && (
                       <button
                         onClick={(e) => onToggleEndorse(ticket.id, e)}
-                        title="I am also facing this problem"
+                        title={hasEndorsed ? 'You endorsed this issue' : 'Tap if you face this issue too'}
                         className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 border ${
                           hasEndorsed
                             ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
@@ -378,7 +406,8 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
                         }`}
                       >
                         <ThumbsUp className={`w-3.5 h-3.5 ${hasEndorsed ? 'fill-white' : ''}`} />
-                        <span>{hasEndorsed ? 'Reported (+1)' : `+1 Me Too (${ticket.affectedCount})`}</span>
+                        <span>{ticket.affectedCount}</span>
+                        {hasEndorsed && <span className="text-[10px] opacity-90">• You +1</span>}
                       </button>
                     )}
 

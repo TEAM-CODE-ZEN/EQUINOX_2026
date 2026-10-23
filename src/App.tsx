@@ -377,23 +377,25 @@ export const App: React.FC = () => {
       }
 
       // My Issues tab filter
-      if (activeTab === 'my-issues' && ticket.reporterUid !== currentUser.uid) {
-        return false;
+      if (activeTab === 'my-issues') {
+        if (ticket.reporterUid !== currentUser.uid) return false;
+        if (statusFilter === 'In Progress' && ticket.status === 'Resolved') return false;
+        if (statusFilter === 'Resolved' && ticket.status !== 'Resolved') return false;
       }
 
-      // Category filter
-      if (categoryFilter !== 'All' && ticket.category !== categoryFilter) {
-        return false;
-      }
+      // Feed tab filters
+      if (activeTab === 'feed') {
+        if (categoryFilter !== 'All' && ticket.category !== categoryFilter) {
+          return false;
+        }
 
-      // Status filter
-      if (statusFilter !== 'All' && ticket.status !== statusFilter) {
-        return false;
-      }
+        if (statusFilter !== 'All' && ticket.status !== statusFilter) {
+          return false;
+        }
 
-      // Priority filter
-      if (priorityFilter !== 'All' && ticket.priority !== priorityFilter) {
-        return false;
+        if (priorityFilter !== 'All' && ticket.priority !== priorityFilter) {
+          return false;
+        }
       }
 
       // Search query filter
@@ -505,244 +507,147 @@ export const App: React.FC = () => {
               }}
             />
           )}
-          {/* Tab 1 & Tab 2: Issue Feed / My Issues */}
-          {(activeTab === 'feed' || activeTab === 'my-issues') && (
+          {/* Tab 1: Campus Issue Feed (Staff / Admin full feed) */}
+          {activeTab === 'feed' && (
             <div className="space-y-4">
               {/* Campus Pulse Hero Statistics Banner */}
-              {activeTab === 'feed' && (
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#14532D] via-[#16A34A] to-[#22C55E] text-white p-5 sm:p-6 shadow-[0_12px_36px_-6px_rgba(22,163,74,0.35)] border border-emerald-400/40">
-                  {/* Subtle Background Glow Elements */}
-                  <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-mocha-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                  <div className="absolute bottom-0 left-1/3 -mb-10 w-64 h-64 bg-burgundy-500/15 rounded-full blur-3xl pointer-events-none"></div>
-
-                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                      <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-burgundy-900/80 border border-burgundy-600/60 text-mocha-200 text-[11px] font-bold tracking-wide uppercase mb-2">
-                        <Sparkles className="w-3.5 h-3.5 text-mocha-300" />
-                        AI Triage & Facilities Network
-                      </div>
-                      <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-                        Apex Campus Coordination Hub
-                      </h1>
-                      <p className="text-xs sm:text-sm text-mocha-100/90 mt-1 max-w-xl font-medium leading-relaxed">
-                        Automated Gemini issue classification, duplicate clustering, and cross-department resolution workflows.
-                      </p>
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#14532D] via-[#16A34A] to-[#22C55E] text-white p-5 sm:p-6 shadow-[0_12px_36px_-6px_rgba(22,163,74,0.35)] border border-emerald-400/40">
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-burgundy-900/80 border border-burgundy-600/60 text-mocha-200 text-[11px] font-bold tracking-wide uppercase mb-2">
+                      <Sparkles className="w-3.5 h-3.5 text-mocha-300" />
+                      Hostel Triage Network
                     </div>
+                    <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+                      Campus Coordination Hub
+                    </h1>
+                  </div>
 
-                    {/* Action Trigger */}
+                  <button
+                    onClick={() => setShowRaiseModal(true)}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-latte-100 hover:bg-white text-burgundy-950 font-extrabold text-xs tracking-tight shadow-[0_4px_20px_rgba(37,3,9,0.35)] transition-all transform active:scale-95 duration-150 self-start md:self-auto"
+                  >
+                    <Plus className="w-4 h-4 text-burgundy-800 stroke-[2.5]" />
+                    <span>Report Concern</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tickets List */}
+              <div className="space-y-3">
+                {displayedTickets.map((ticket) => (
+                  <TicketCard
+                    key={ticket.id}
+                    ticket={ticket}
+                    currentUserUid={currentUser.uid}
+                    onSelect={(t) => setSelectedTicket(t)}
+                    onToggleEndorse={(id, e) => handleToggleEndorse(id, e)}
+                    commentCount={dataStore.getComments(ticket.id).length}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Track My Issues (Clean, Minimal, No Clutter under Search) */}
+          {activeTab === 'my-issues' && (
+            <div className="space-y-4 max-w-4xl mx-auto">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-mocha-200/90 shadow-subtle">
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">
+                    Track My Issues
+                  </h1>
+                  <p className="text-xs text-mocha-600 mt-0.5">
+                    Complaints and concerns reported by you • Room {currentUser.roomNumber || '304'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowRaiseModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16A34A] hover:bg-[#22C55E] text-white font-bold text-xs shadow-sm transition-all active:scale-95 self-start sm:self-center"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Report Concern</span>
+                </button>
+              </div>
+
+              {/* Minimal Search & 3 Clean Status Pills */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-mocha-200/90 shadow-subtle">
+                {/* 3 Status Filter Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  <button
+                    onClick={() => setStatusFilter('All')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      statusFilter === 'All'
+                        ? 'bg-[#16A34A] text-white shadow-sm'
+                        : 'bg-mocha-100/80 text-mocha-800 hover:bg-mocha-200/70'
+                    }`}
+                  >
+                    All ({tickets.filter((t) => t.reporterUid === currentUser.uid).length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('In Progress')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      statusFilter === 'In Progress'
+                        ? 'bg-[#16A34A] text-white shadow-sm'
+                        : 'bg-mocha-100/80 text-mocha-800 hover:bg-mocha-200/70'
+                    }`}
+                  >
+                    Active ({tickets.filter((t) => t.reporterUid === currentUser.uid && t.status !== 'Resolved').length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('Resolved')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      statusFilter === 'Resolved'
+                        ? 'bg-[#16A34A] text-white shadow-sm'
+                        : 'bg-mocha-100/80 text-mocha-800 hover:bg-mocha-200/70'
+                    }`}
+                  >
+                    Solved ({tickets.filter((t) => t.reporterUid === currentUser.uid && t.status === 'Resolved').length})
+                  </button>
+                </div>
+
+                {/* Clean Search Input */}
+                <div className="relative min-w-[220px]">
+                  <Search className="w-3.5 h-3.5 text-mocha-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search my issues..."
+                    className="w-full pl-9 pr-8 py-1.5 border border-mocha-200 rounded-xl bg-mocha-50/60 focus:bg-white text-xs font-medium text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all placeholder:text-mocha-400"
+                  />
+                  {searchQuery && (
                     <button
-                      onClick={() => setShowRaiseModal(true)}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-latte-100 hover:bg-white text-burgundy-950 font-extrabold text-xs tracking-tight shadow-[0_4px_20px_rgba(37,3,9,0.35)] transition-all transform active:scale-95 duration-150 self-start md:self-auto"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-2 text-mocha-400 hover:text-mocha-700"
                     >
-                      <Plus className="w-4 h-4 text-burgundy-800 stroke-[2.5]" />
-                      <span>Report Concern</span>
+                      <X className="w-3.5 h-3.5" />
                     </button>
-                  </div>
-
-                  {/* Real-time KPI Metric Pills */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-white/10">
-                    <div className="bg-burgundy-950/40 backdrop-blur-sm rounded-2xl p-3 border border-burgundy-800/60">
-                      <div className="flex items-center gap-1.5 text-mocha-300 text-[11px] font-semibold">
-                        <Inbox className="w-3.5 h-3.5 text-mocha-300" />
-                        <span>Active Tickets</span>
-                      </div>
-                      <div className="text-lg sm:text-xl font-extrabold font-mono text-latte-50 mt-0.5">
-                        {openCount}
-                      </div>
-                    </div>
-
-                    <div className="bg-burgundy-950/40 backdrop-blur-sm rounded-2xl p-3 border border-burgundy-800/60">
-                      <div className="flex items-center gap-1.5 text-mocha-300 text-[11px] font-semibold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Resolved</span>
-                      </div>
-                      <div className="text-lg sm:text-xl font-extrabold font-mono text-emerald-300 mt-0.5">
-                        {resolvedCount}
-                      </div>
-                    </div>
-
-                    <div className="bg-burgundy-950/40 backdrop-blur-sm rounded-2xl p-3 border border-burgundy-800/60">
-                      <div className="flex items-center gap-1.5 text-mocha-300 text-[11px] font-semibold">
-                        <TrendingUp className="w-3.5 h-3.5 text-mocha-200" />
-                        <span>Resolution Rate</span>
-                      </div>
-                      <div className="text-lg sm:text-xl font-extrabold font-mono text-latte-50 mt-0.5">
-                        {resolutionRate}%
-                      </div>
-                    </div>
-
-                    <div className="bg-burgundy-950/40 backdrop-blur-sm rounded-2xl p-3 border border-burgundy-800/60">
-                      <div className="flex items-center gap-1.5 text-mocha-300 text-[11px] font-semibold">
-                        <Clock className="w-3.5 h-3.5 text-amber-300" />
-                        <span>Avg Triage Time</span>
-                      </div>
-                      <div className="text-lg sm:text-xl font-extrabold font-mono text-latte-50 mt-0.5">
-                        &lt; 2.4h
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Search, Segmented Chips & Filter Controls */}
-              <div className="p-4 sm:p-5 bg-white/95 rounded-3xl border border-mocha-200/90 shadow-subtle space-y-3.5">
-                {/* Search Bar + Controls */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div className="relative flex-1">
-                    <Search className="w-4 h-4 text-mocha-400 absolute left-3.5 top-3" />
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search tickets by title, room, ID, or keywords..."
-                      className="w-full pl-10 pr-12 py-2.5 border border-mocha-200/90 rounded-2xl bg-mocha-50/60 focus:bg-white focus:ring-2 focus:ring-burgundy-600/20 focus:border-burgundy-700 transition-all text-xs font-medium placeholder:text-mocha-400 text-slate-800"
-                    />
-                    <div className="absolute right-3 top-2.5 flex items-center gap-1">
-                      {searchQuery ? (
-                        <button
-                          onClick={() => setSearchQuery('')}
-                          className="p-1 text-mocha-400 hover:text-mocha-700 rounded"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <kbd className="hidden sm:inline-block font-mono text-[10px] text-mocha-500 bg-mocha-100 border border-mocha-200 px-1.5 py-0.5 rounded">
-                          ⌘K
-                        </kbd>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Sort By Dropdown */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-mocha-500 uppercase tracking-wider font-mono">
-                      Sort:
-                    </span>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as any)}
-                      className="py-2 px-3 border border-mocha-200/90 rounded-xl bg-mocha-50 hover:bg-white text-xs font-bold text-mocha-800 cursor-pointer transition-colors"
-                    >
-                      <option value="recent">Most Recent</option>
-                      <option value="affected">Most Endorsed (+1s)</option>
-                      <option value="priority">Highest Priority</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Segmented Category Chips (Hick's Law) */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 no-scrollbar">
-                  {categoryChips.map((chip) => {
-                    const isSelected = categoryFilter === chip.label;
-                    const count =
-                      chip.label === 'All'
-                        ? tickets.length
-                        : tickets.filter((t) => t.category === chip.label).length;
-                    const Icon = chip.icon;
-
-                    return (
-                      <button
-                        key={chip.label}
-                        onClick={() => setCategoryFilter(chip.label)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 flex-shrink-0 active:scale-95 ${
-                          isSelected
-                            ? 'bg-burgundy-900 text-latte-50 shadow-sm'
-                            : 'bg-mocha-100/80 hover:bg-mocha-200/70 text-mocha-800'
-                        }`}
-                      >
-                        <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-mocha-300' : 'text-mocha-500'}`} />
-                        <span>{chip.label}</span>
-                        <span
-                          className={`text-[10px] font-mono px-1.5 py-0.2 rounded-md ${
-                            isSelected ? 'bg-burgundy-950 text-mocha-200' : 'bg-mocha-200 text-mocha-800'
-                          }`}
-                        >
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Secondary Filters: Status & Priority */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-mocha-100 text-xs">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] font-bold text-mocha-500 uppercase tracking-wider font-mono">
-                      Filters:
-                    </span>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="py-1 px-2.5 border border-mocha-200 rounded-lg bg-mocha-50 text-mocha-800 text-xs font-medium cursor-pointer"
-                    >
-                      <option value="All">All Statuses</option>
-                      <option value="Open">Open</option>
-                      <option value="Under Review">Under Review</option>
-                      <option value="Assigned">Assigned</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Resolved">Resolved</option>
-                      <option value="Reopened">Reopened</option>
-                    </select>
-
-                    <select
-                      value={priorityFilter}
-                      onChange={(e) => setPriorityFilter(e.target.value)}
-                      className="py-1 px-2.5 border border-mocha-200 rounded-lg bg-mocha-50 text-mocha-800 text-xs font-medium cursor-pointer"
-                    >
-                      <option value="All">All Priorities</option>
-                      <option value="Critical">Critical</option>
-                      <option value="High">High</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Low">Low</option>
-                    </select>
-
-                    {(categoryFilter !== 'All' || statusFilter !== 'All' || priorityFilter !== 'All' || searchQuery) && (
-                      <button
-                        onClick={() => {
-                          setCategoryFilter('All');
-                          setStatusFilter('All');
-                          setPriorityFilter('All');
-                          setSearchQuery('');
-                        }}
-                        className="text-xs font-bold text-burgundy-700 hover:text-burgundy-900 ml-1 transition-colors"
-                      >
-                        Reset filters
-                      </button>
-                    )}
-                  </div>
-
-                  <span className="text-xs font-bold text-mocha-600 font-mono">
-                    Showing {displayedTickets.length} of {tickets.length} tickets
-                  </span>
+                  )}
                 </div>
               </div>
 
               {/* Tickets List */}
               <div className="space-y-3">
                 {displayedTickets.length === 0 ? (
-                  <div className="p-12 bg-white rounded-3xl border border-mocha-200 text-center space-y-3.5 shadow-subtle">
-                    <div className="w-12 h-12 rounded-2xl bg-mocha-100 flex items-center justify-center mx-auto text-mocha-500">
-                      <Inbox className="w-6 h-6" />
+                  <div className="p-10 bg-white rounded-3xl border border-mocha-200 text-center space-y-3 shadow-subtle">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-6 h-6" />
                     </div>
-                    <div>
-                      <h3 className="text-sm font-extrabold text-burgundy-950">
-                        No Matching Issues Found
-                      </h3>
-                      <p className="text-xs text-mocha-700 mt-1 max-w-sm mx-auto">
-                        No tickets match your active filter criteria. Try clearing filters or create a new campus report.
-                      </p>
-                    </div>
+                    <h3 className="text-base font-bold text-gray-900">
+                      No Issues Found
+                    </h3>
+                    <p className="text-xs text-mocha-600 max-w-sm mx-auto">
+                      {searchQuery
+                        ? 'No complaints match your search query.'
+                        : 'You do not have any issues in this category.'}
+                    </p>
                     <button
-                      onClick={() => {
-                        setCategoryFilter('All');
-                        setStatusFilter('All');
-                        setPriorityFilter('All');
-                        setSearchQuery('');
-                      }}
-                      className="px-4 py-2 bg-burgundy-900 text-latte-50 rounded-xl text-xs font-bold hover:bg-burgundy-800 transition-colors shadow-sm"
+                      onClick={() => setShowRaiseModal(true)}
+                      className="px-4 py-2 bg-[#16A34A] text-white rounded-xl text-xs font-bold hover:bg-[#22C55E] transition-colors shadow-sm"
                     >
-                      Clear All Filters
+                      Report a Problem
                     </button>
                   </div>
                 ) : (
