@@ -528,6 +528,7 @@ export const App: React.FC = () => {
               onNavigateTab={(tab) => setActiveTab(tab)}
               openIssuesCount={openCount}
               gatePassCount={gatePasses.filter((g) => g.status === 'Pending Warden Approval' || g.status === 'Approved').length}
+              onToggleEndorse={(id, e) => handleToggleEndorse(id, e)}
               onOpenSettings={() => {
                 const nextUser = currentUser.role === 'Student'
                   ? DEMO_USERS[1]

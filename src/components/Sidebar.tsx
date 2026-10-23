@@ -47,64 +47,90 @@ export const Sidebar: React.FC<SidebarProps> = ({
     currentUser.role === 'Campus Staff' || currentUser.role === 'Admin';
   const isAdmin = currentUser.role === 'Admin';
 
-  const navItems = [
-    {
-      id: 'overview',
-      label: 'Executive Overview',
-      shortLabel: 'Overview',
-      icon: Layers,
-    },
-    {
-      id: 'gate-pass',
-      label: 'Apply for Gate Pass',
-      shortLabel: 'Gate Pass',
-      icon: QrCode,
-      badge: gatePassCount !== undefined && gatePassCount > 0 ? `${gatePassCount}` : 'Pass',
-      badgeColor: 'bg-[#16A34A] text-white font-bold',
-      isAction: true,
-    },
-    {
-      id: 'feed',
-      label: 'Campus Issue Feed',
-      shortLabel: 'Feed',
-      icon: Inbox,
-      badge: openIssuesCount > 0 ? `${openIssuesCount}` : undefined,
-    },
-    {
-      id: 'my-issues',
-      label: 'My Raised Issues',
-      shortLabel: 'My Issues',
-      icon: BookmarkCheck,
-      badge: myIssuesCount > 0 ? `${myIssuesCount}` : undefined,
-    },
-    {
-      id: 'communities',
-      label: 'Communities & Wings',
-      shortLabel: 'Community',
-      icon: Users,
-    },
-    {
-      id: 'events',
-      label: 'Events & Notices',
-      shortLabel: 'Notices',
-      icon: CalendarDays,
-    },
-    {
-      id: 'notifications',
-      label: 'Notifications Inbox',
-      shortLabel: 'Inbox',
-      icon: Bell,
-      badge: unreadCount > 0 ? `${unreadCount}` : undefined,
-      badgeColor: 'bg-burgundy-700 text-latte-50 shadow-sm',
-    },
-    {
-      id: 'help-safety',
-      label: 'Help & 24/7 Helplines',
-      shortLabel: 'Helplines',
-      icon: LifeBuoy,
-      highlight: true,
-    },
-  ];
+  const isStudent = currentUser.role === 'Student';
+
+  const navItems = isStudent
+    ? [
+        {
+          id: 'overview',
+          label: 'Overview',
+          shortLabel: 'Overview',
+          icon: Layers,
+        },
+        {
+          id: 'gate-pass',
+          label: 'Apply for Gate Pass',
+          shortLabel: 'Gate Pass',
+          icon: QrCode,
+          badge: gatePassCount !== undefined && gatePassCount > 0 ? `${gatePassCount}` : 'Pass',
+          badgeColor: 'bg-[#16A34A] text-white font-bold',
+          isAction: true,
+        },
+        {
+          id: 'my-issues',
+          label: 'Track My Issues',
+          shortLabel: 'Track Issues',
+          icon: BookmarkCheck,
+          badge: myIssuesCount > 0 ? `${myIssuesCount}` : undefined,
+        },
+        {
+          id: 'help-safety',
+          label: 'Help & 24/7 Helplines',
+          shortLabel: 'Helplines',
+          icon: LifeBuoy,
+          highlight: true,
+        },
+      ]
+    : [
+        {
+          id: 'overview',
+          label: 'Executive Overview',
+          shortLabel: 'Overview',
+          icon: Layers,
+        },
+        {
+          id: 'gate-pass',
+          label: 'Gate Pass Clearance',
+          shortLabel: 'Gate Pass',
+          icon: QrCode,
+          badge: gatePassCount !== undefined && gatePassCount > 0 ? `${gatePassCount}` : 'Pass',
+          badgeColor: 'bg-[#16A34A] text-white font-bold',
+          isAction: true,
+        },
+        {
+          id: 'feed',
+          label: 'Campus Issue Feed',
+          shortLabel: 'Feed',
+          icon: Inbox,
+          badge: openIssuesCount > 0 ? `${openIssuesCount}` : undefined,
+        },
+        {
+          id: 'my-issues',
+          label: 'My Raised Issues',
+          shortLabel: 'My Issues',
+          icon: BookmarkCheck,
+          badge: myIssuesCount > 0 ? `${myIssuesCount}` : undefined,
+        },
+        {
+          id: 'communities',
+          label: 'Communities & Wings',
+          shortLabel: 'Community',
+          icon: Users,
+        },
+        {
+          id: 'events',
+          label: 'Events & Notices',
+          shortLabel: 'Notices',
+          icon: CalendarDays,
+        },
+        {
+          id: 'help-safety',
+          label: 'Help & 24/7 Helplines',
+          shortLabel: 'Helplines',
+          icon: LifeBuoy,
+          highlight: true,
+        },
+      ];
 
   const adminStaffItems = [
     ...(isStaffOrAdmin
@@ -428,7 +454,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Bottom Navigation Bar                                         */}
       {/* ==================================================================== */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#134229]/95 backdrop-blur-xl border-t border-emerald-800/80 px-2 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(19,66,41,0.4)]">
-        {navItems.slice(0, 4).map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -476,25 +502,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Staff</span>
           </button>
         )}
-        <button
-          onClick={() => onSelectTab('help-safety')}
-          className={`flex flex-col items-center py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 ${
-            activeTab === 'help-safety'
-              ? 'text-latte-50 font-extrabold'
-              : 'text-mocha-400 hover:text-latte-100'
-          }`}
-        >
-          <div
-            className={`p-1 rounded-lg mb-0.5 ${
-              activeTab === 'help-safety'
-                ? 'bg-white/15 text-latte-50'
-                : 'text-mocha-400'
-            }`}
-          >
-            <LifeBuoy className="w-4 h-4" />
-          </div>
-          <span>Safety</span>
-        </button>
       </nav>
     </>
   );
