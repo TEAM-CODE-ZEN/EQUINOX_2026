@@ -481,6 +481,7 @@ export const App: React.FC = () => {
           myIssuesCount={myIssuesCount}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
+          onRaiseIssue={() => setShowRaiseModal(true)}
         />
 
         {/* Dynamic Main Content Area */}
@@ -522,14 +523,6 @@ export const App: React.FC = () => {
                       Campus Coordination Hub
                     </h1>
                   </div>
-
-                  <button
-                    onClick={() => setShowRaiseModal(true)}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-latte-100 hover:bg-white text-burgundy-950 font-extrabold text-xs tracking-tight shadow-[0_4px_20px_rgba(37,3,9,0.35)] transition-all transform active:scale-95 duration-150 self-start md:self-auto"
-                  >
-                    <Plus className="w-4 h-4 text-burgundy-800 stroke-[2.5]" />
-                    <span>Report Concern</span>
-                  </button>
                 </div>
               </div>
 
@@ -553,22 +546,13 @@ export const App: React.FC = () => {
           {activeTab === 'my-issues' && (
             <div className="space-y-4 max-w-4xl mx-auto">
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-mocha-200/90 shadow-subtle">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">
-                    Track My Issues
-                  </h1>
-                  <p className="text-xs text-mocha-600 mt-0.5">
-                    Complaints and concerns reported by you • Room {currentUser.roomNumber || '304'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowRaiseModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16A34A] hover:bg-[#22C55E] text-white font-bold text-xs shadow-sm transition-all active:scale-95 self-start sm:self-center"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Report Concern</span>
-                </button>
+              <div className="bg-white p-5 rounded-3xl border border-mocha-200/90 shadow-subtle">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">
+                  Track My Issues
+                </h1>
+                <p className="text-xs text-mocha-600 mt-0.5">
+                  Complaints and concerns reported by you • Room {currentUser.roomNumber || '304'}
+                </p>
               </div>
 
               {/* Minimal Search & 3 Clean Status Pills */}
@@ -778,19 +762,6 @@ export const App: React.FC = () => {
             <AdminGovernanceView currentUser={currentUser} />
           )}
         </main>
-      </div>
-
-      {/* Floating Prominent "Raise Issue" Action Button (Bottom Right) */}
-      <div className="fixed bottom-20 md:bottom-8 right-6 z-40">
-        <button
-          onClick={() => setShowRaiseModal(true)}
-          className="flex items-center gap-2 px-5 py-3.5 bg-[#16A34A] hover:bg-[#22C55E] text-white rounded-2xl shadow-[0_12px_28px_rgba(22,163,74,0.35)] hover:shadow-[0_16px_36px_rgba(22,163,74,0.45)] font-bold text-xs tracking-wide transition-all transform hover:-translate-y-1 active:scale-95 ring-2 ring-emerald-300/40"
-        >
-          <div className="w-5 h-5 rounded-lg bg-emerald-950/50 flex items-center justify-center">
-            <Plus className="w-4 h-4 text-emerald-200 stroke-[2.5]" />
-          </div>
-          <span>Raise Campus Concern</span>
-        </button>
       </div>
 
       {/* Raise Issue Modal */}

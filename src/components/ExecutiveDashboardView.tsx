@@ -18,7 +18,7 @@ import { formatRelativeTime, getTicketPriorityBorderClass } from '../utils/forma
 interface ExecutiveDashboardViewProps {
   tickets: Ticket[];
   currentUser: UserProfile;
-  onReportConcern: () => void;
+  onReportConcern?: () => void;
   onSelectTicket: (ticket: Ticket) => void;
   onNavigateTab: (tab: string) => void;
   openIssuesCount: number;
@@ -147,17 +147,6 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
           <p className="text-xs sm:text-sm text-mocha-700 mt-0.5">
             View active hostel issues, track your complaints, and endorse existing reports.
           </p>
-        </div>
-
-        {/* Action Button */}
-        <div>
-          <button
-            onClick={onReportConcern}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#16A34A] hover:bg-[#22C55E] text-white font-extrabold text-xs tracking-tight shadow-[0_4px_16px_rgba(22,163,74,0.35)] transition-all active:scale-95 group"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5] text-white group-hover:rotate-90 transition-transform duration-200" />
-            <span>Report a Problem</span>
-          </button>
         </div>
       </div>
 

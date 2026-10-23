@@ -26,6 +26,7 @@ interface SidebarProps {
   myIssuesCount: number;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  onRaiseIssue?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -37,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   myIssuesCount,
   isCollapsed = false,
   onToggleCollapse,
+  onRaiseIssue,
 }) => {
   const isStaffOrAdmin =
     currentUser.role === 'Campus Staff' || currentUser.role === 'Admin';
@@ -183,8 +185,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
 
+            {/* Primary Action Button: Raise Issue */}
+            {onRaiseIssue && (
+              <div className="pt-1">
+                {isCollapsed ? (
+                  <div className="relative group flex justify-center">
+                    <button
+                      onClick={onRaiseIssue}
+                      title="Raise Issue"
+                      className="w-11 h-11 rounded-2xl bg-[#16A34A] hover:bg-[#22C55E] text-white flex items-center justify-center shadow-[0_4px_16px_rgba(22,163,74,0.35)] transition-all active:scale-95 group"
+                    >
+                      <Plus className="w-5 h-5 stroke-[2.5]" />
+                    </button>
+                    <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#134229] text-white text-xs font-bold rounded-xl shadow-xl border border-emerald-600/50 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 z-50">
+                      Raise Issue
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={onRaiseIssue}
+                    className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-[#16A34A] hover:bg-[#22C55E] text-white rounded-2xl shadow-[0_4px_16px_rgba(22,163,74,0.35)] hover:shadow-[0_6px_20px_rgba(22,163,74,0.45)] font-bold text-xs tracking-wide transition-all transform hover:-translate-y-0.5 active:scale-95"
+                  >
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    <span>Raise Issue</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Navigation Items Stack */}
-            <nav className="space-y-1.5 pt-2">
+            <nav className="space-y-1.5 pt-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -437,6 +467,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           );
         })}
+        {onRaiseIssue && (
+          <button
+            onClick={onRaiseIssue}
+            className="flex flex-col items-center py-1 px-2 rounded-xl text-[10px] font-bold text-emerald-300 transition-all active:scale-95"
+          >
+            <div className="p-1 rounded-lg mb-0.5 bg-[#16A34A] text-white shadow-sm">
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+            </div>
+            <span>Raise</span>
+          </button>
+        )}
         {isStaffOrAdmin && (
           <button
             onClick={() => onSelectTab('staff-dashboard')}
