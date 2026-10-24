@@ -23,8 +23,8 @@ import {
   FileText,
   UserCheck,
 } from 'lucide-react';
-import { Community, CommitteeMembership, UserProfile, Ticket } from '../types';
-import { DEMO_USERS } from '../services/mockData';
+import { Community, CommitteeMembership, UserProfile, Ticket, CommunityMember } from '../types';
+import { DEMO_USERS, DEMO_COMMUNITIES } from '../services/mockData';
 import { getStatusBadgeStyle, getPriorityBadgeStyle, formatRelativeTime } from '../utils/formatters';
 
 interface CommunitiesViewProps {
@@ -162,7 +162,9 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
       {/* ---------------------------------------------------------------------- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         {communities.map((comm) => {
-          const membersList = comm.members || [];
+          const membersList: CommunityMember[] = (comm.members && comm.members.length === 5)
+            ? comm.members
+            : ((DEMO_COMMUNITIES.find((c: Community) => c.id === comm.id)?.members || []) as CommunityMember[]).slice(0, 5);
           const record = comm.trackRecord;
 
           return (
@@ -223,7 +225,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="font-bold text-gray-800 uppercase tracking-wider font-mono text-[10px] flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-[#15803D]" />
-                      Committee Members ({Math.min(membersList.length, 5)}):
+                      5 Committee Members & Phone Numbers:
                     </span>
                     <span className="text-[10px] text-[#15803D] font-bold">
                       Direct Contacts
@@ -231,7 +233,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   </div>
 
                   <div className="space-y-1.5">
-                    {membersList.slice(0, 5).map((m, idx) => (
+                    {membersList.slice(0, 5).map((m: CommunityMember, idx: number) => (
                       <div
                         key={m.id || idx}
                         className="flex items-center justify-between p-1.5 sm:p-2 rounded-xl bg-mocha-50/70 border border-mocha-100 hover:bg-emerald-50/80 hover:border-emerald-200 transition-colors"
@@ -276,7 +278,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5 text-xs font-bold text-[#15803D] group-hover:translate-x-0.5 transition-transform">
-                  <span>{membersList.length >= 5 ? `${membersList.length} Members` : `${comm.memberCount} Members`}</span>
+                  <span>5 Committee Members</span>
                   <ChevronRight className="w-4 h-4" />
                 </div>
               </div>
@@ -435,7 +437,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span>Committee Members ({selectedCommunity.members?.length || selectedCommunity.memberCount})</span>
+                <span>Committee Members (5)</span>
               </button>
 
               <button
@@ -493,12 +495,15 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                       </p>
                     </div>
                     <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      {selectedCommunity.members?.length || 6} Appointed
+                      5 Appointed Members
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(selectedCommunity.members || []).map((m) => (
+                    {(((selectedCommunity.members && selectedCommunity.members.length === 5)
+                      ? selectedCommunity.members
+                      : (DEMO_COMMUNITIES.find((c: Community) => c.id === selectedCommunity.id)?.members || [])
+                    ) as CommunityMember[]).slice(0, 5).map((m: CommunityMember) => (
                       <div
                         key={m.id}
                         className="p-3.5 bg-white rounded-2xl border border-mocha-200/90 shadow-subtle flex items-start gap-3 hover:border-emerald-300 transition-colors"

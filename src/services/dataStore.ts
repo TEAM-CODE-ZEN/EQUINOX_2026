@@ -21,7 +21,7 @@ const STORAGE_KEYS = {
   TICKETS: 'campusaccord_tickets',
   COMMENTS: 'campusaccord_comments',
   HISTORY: 'campusaccord_history',
-  COMMUNITIES: 'campusaccord_communities',
+  COMMUNITIES: 'campusaccord_communities_v5',
   MEMBERSHIPS: 'campusaccord_memberships',
   NOTIFICATIONS: 'campusaccord_notifications',
 };
@@ -332,22 +332,34 @@ class DataStoreService {
 
   // Communities
   getCommunities(): Community[] {
+    // Purge any outdated cached versions from earlier builds
+    try {
+      localStorage.removeItem('campusaccord_communities');
+      localStorage.removeItem('campusaccord_communities_v2');
+      localStorage.removeItem('campusaccord_communities_v3');
+      localStorage.removeItem('campusaccord_communities_v4');
+    } catch {
+      // ignore
+    }
+
     const stored = this.getStorage<Community[]>(STORAGE_KEYS.COMMUNITIES, DEMO_COMMUNITIES);
-    return DEMO_COMMUNITIES.map((defaultComm) => {
+    const updated = DEMO_COMMUNITIES.map((defaultComm) => {
       const existing = stored.find((c) => c.id === defaultComm.id);
-      if (!existing) return defaultComm;
-      const hasValidMembers =
-        existing.members &&
-        existing.members.length >= 5 &&
-        existing.members.every((m) => m.name && m.phone);
+      // Guarantee exactly 5 members with full names and phone numbers
+      const members = (defaultComm.members || []).slice(0, 5);
 
       return {
         ...defaultComm,
         ...existing,
-        members: hasValidMembers ? existing.members : defaultComm.members,
-        trackRecord: existing.trackRecord || defaultComm.trackRecord,
+        name: defaultComm.name,
+        memberCount: 5,
+        members: members,
+        trackRecord: defaultComm.trackRecord,
       };
     });
+
+    this.setStorage(STORAGE_KEYS.COMMUNITIES, updated);
+    return updated;
   }
 
   saveCommunity(community: Community): void {
