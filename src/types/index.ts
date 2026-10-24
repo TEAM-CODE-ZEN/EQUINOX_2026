@@ -112,15 +112,41 @@ export interface Ticket {
   };
 }
 
+export interface CommunityMember {
+  id: string;
+  name: string;
+  role: string; // e.g. 'Committee Lead' | 'Student Representative' | 'Wing Coordinator' | 'Faculty Advisor' | 'Technical Specialist'
+  userType: 'Student' | 'Staff' | 'Faculty';
+  email: string;
+  phone?: string;
+  roomOrOffice: string;
+  joinedDate: string;
+  avatarUrl?: string;
+}
+
+export interface CommunityTrackRecord {
+  totalResolved: number;
+  activeIssues: number;
+  avgTurnaroundHours: number;
+  satisfactionRating: number;
+  slaComplianceRate: number;
+  firstTimeFixRate: number;
+  keyAchievements: string[];
+}
+
 export interface Community {
   id: string;
   name: string;
   description: string;
   iconName: string;
   leadName?: string;
+  leadRole?: string;
+  leadContact?: string;
   memberCount: number;
   activeTicketCount: number;
   isArchived: boolean;
+  members?: CommunityMember[];
+  trackRecord?: CommunityTrackRecord;
 }
 
 export interface CommitteeMembership {

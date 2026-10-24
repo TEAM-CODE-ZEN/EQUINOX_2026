@@ -332,7 +332,17 @@ class DataStoreService {
 
   // Communities
   getCommunities(): Community[] {
-    return this.getStorage<Community[]>(STORAGE_KEYS.COMMUNITIES, DEMO_COMMUNITIES);
+    const stored = this.getStorage<Community[]>(STORAGE_KEYS.COMMUNITIES, DEMO_COMMUNITIES);
+    return DEMO_COMMUNITIES.map((defaultComm) => {
+      const existing = stored.find((c) => c.id === defaultComm.id);
+      if (!existing) return defaultComm;
+      return {
+        ...defaultComm,
+        ...existing,
+        members: existing.members && existing.members.length >= 5 ? existing.members : defaultComm.members,
+        trackRecord: existing.trackRecord || defaultComm.trackRecord,
+      };
+    });
   }
 
   saveCommunity(community: Community): void {

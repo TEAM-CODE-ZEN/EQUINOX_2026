@@ -635,6 +635,8 @@ export const App: React.FC = () => {
               communities={communities}
               memberships={memberships}
               currentUser={currentUser}
+              tickets={tickets}
+              onOpenTicket={(t) => setSelectedTicket(t)}
               onProposeMembership={handleProposeMembership}
               onReviewMembership={handleReviewMembership}
             />
