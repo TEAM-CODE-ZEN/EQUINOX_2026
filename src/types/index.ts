@@ -7,7 +7,6 @@ export type StaffDesignation =
   | 'Maintenance Worker'
   | 'Mess Staff'
   | 'Housekeeping Staff'
-  | 'Event Coordinator'
   | 'Other';
 
 export interface UserProfile {
@@ -28,7 +27,6 @@ export type TicketCategory =
   | 'Security'
   | 'Maintenance'
   | 'Internet / Connectivity'
-  | 'Events / Clubs'
   | 'Other';
 
 export type TicketStatus =
@@ -141,37 +139,12 @@ export interface CommitteeMembership {
   rejectionReason?: string;
 }
 
-export interface Announcement {
-  id: string;
-  title: string;
-  message: string;
-  authorUid: string;
-  authorName: string;
-  authorRole: string;
-  publishedAt: string;
-  targetAudience: 'All' | 'Students' | 'Hostel Residents' | 'Campus Staff';
-  isPinned: boolean;
-  expiresAt?: string;
-}
-
-export interface CampusEvent {
-  id: string;
-  title: string;
-  description: string;
-  dateTime: string;
-  location: string;
-  organizer: string;
-  audience: string;
-  registrationUrl?: string;
-  isOfficial: boolean;
-}
-
 export interface NotificationItem {
   id: string;
   recipientUid: string;
   title: string;
   message: string;
-  type: 'ticket_update' | 'ticket_assigned' | 'comment' | 'committee' | 'announcement' | 'event' | 'safety' | 'gate_pass';
+  type: 'ticket_update' | 'ticket_assigned' | 'comment' | 'committee' | 'safety';
   linkTicketId?: string;
   linkTab?: string;
   read: boolean;
@@ -184,36 +157,5 @@ export interface RoutingRule {
   defaultCommunityId: string;
   defaultStaffDesignation: StaffDesignation;
   keywords: string[];
-}
-
-export type GatePassStatus =
-  | 'Pending Warden Approval'
-  | 'Approved'
-  | 'Out of Campus'
-  | 'Returned'
-  | 'Rejected';
-
-export interface GatePass {
-  id: string;
-  passNumber: string; // e.g., "GP-2026-8941"
-  studentUid: string;
-  name: string;
-  roomNo: string;
-  rollNo: string;
-  course: string;
-  parentPhone: string;
-  studentPhone: string;
-  dateFrom: string;
-  dateTo: string;
-  visitAddress: string;
-  purpose: string;
-  status: GatePassStatus;
-  appliedAt: string;
-  approvedAt?: string;
-  approvedByWardenName?: string;
-  rejectionReason?: string;
-  securityCheckOutTime?: string;
-  securityCheckInTime?: string;
-  qrCodeData?: string;
 }
 

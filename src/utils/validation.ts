@@ -24,7 +24,6 @@ export const AiAnalysisResultSchema = z.object({
     'Security',
     'Maintenance',
     'Internet / Connectivity',
-    'Events / Clubs',
     'Other',
   ]),
   suggestedCommunity: z.string(),
@@ -36,20 +35,3 @@ export const AiAnalysisResultSchema = z.object({
 });
 
 export type AiAnalysisResult = z.infer<typeof AiAnalysisResultSchema>;
-
-export const AnnouncementSchema = z.object({
-  title: z.string().min(5).max(120),
-  message: z.string().min(10).max(1500),
-  targetAudience: z.enum(['All', 'Students', 'Hostel Residents', 'Campus Staff']),
-  isPinned: z.boolean().default(false),
-});
-
-export const EventSchema = z.object({
-  title: z.string().min(5).max(120),
-  description: z.string().min(10).max(1500),
-  dateTime: z.string().min(5),
-  location: z.string().min(2),
-  organizer: z.string().min(2),
-  audience: z.string().default('All Campus Members'),
-  registrationUrl: z.string().url().optional().or(z.literal('')),
-});

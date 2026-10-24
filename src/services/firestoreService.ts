@@ -13,16 +13,12 @@ import { db, isDemoMode } from './firebase';
 import {
   Ticket,
   TicketComment,
-  Announcement,
-  CampusEvent,
   UserProfile,
   TicketStatus,
 } from '../types';
 import {
   DEMO_COMMUNITIES,
   INITIAL_DEMO_TICKETS,
-  INITIAL_ANNOUNCEMENTS,
-  INITIAL_EVENTS,
   INITIAL_MEMBERSHIPS,
 } from './mockData';
 
@@ -53,21 +49,7 @@ class FirestoreService {
         }
       }
 
-      // Check announcements
-      const annSnap = await getDocs(collection(db, 'announcements'));
-      if (annSnap.empty) {
-        for (const ann of INITIAL_ANNOUNCEMENTS) {
-          await setDoc(doc(db, 'announcements', ann.id), ann);
-        }
-      }
 
-      // Check events
-      const evtSnap = await getDocs(collection(db, 'events'));
-      if (evtSnap.empty) {
-        for (const evt of INITIAL_EVENTS) {
-          await setDoc(doc(db, 'events', evt.id), evt);
-        }
-      }
 
       // Check memberships
       const memSnap = await getDocs(collection(db, 'committeeMemberships'));
@@ -261,25 +243,6 @@ class FirestoreService {
     }
   }
 
-  // Add Announcement
-  async addAnnouncement(ann: Announcement): Promise<void> {
-    if (!this.isLive()) return;
-    try {
-      await setDoc(doc(db, 'announcements', ann.id), ann);
-    } catch (err) {
-      console.error('Firestore addAnnouncement error:', err);
-    }
-  }
-
-  // Add Event
-  async addEvent(event: CampusEvent): Promise<void> {
-    if (!this.isLive()) return;
-    try {
-      await setDoc(doc(db, 'events', event.id), event);
-    } catch (err) {
-      console.error('Firestore addEvent error:', err);
-    }
-  }
 }
 
 export const firestoreService = new FirestoreService();

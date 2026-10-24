@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Inbox,
   Users,
-  CalendarDays,
   Bell,
   LifeBuoy,
   LayoutDashboard,
@@ -95,12 +94,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Communities & Wings',
           shortLabel: 'Community',
           icon: Users,
-        },
-        {
-          id: 'events',
-          label: 'Events & Notices',
-          shortLabel: 'Notices',
-          icon: CalendarDays,
         },
         {
           id: 'help-safety',

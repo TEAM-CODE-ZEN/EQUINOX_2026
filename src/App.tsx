@@ -18,9 +18,6 @@ import {
   CommunitiesView,
 } from './components/CommunitiesView';
 import {
-  AnnouncementsEventsView,
-} from './components/AnnouncementsEventsView';
-import {
   StaffDashboard,
 } from './components/StaffDashboard';
 import {
@@ -40,8 +37,6 @@ import {
   TicketPriority,
   Community,
   CommitteeMembership,
-  Announcement,
-  CampusEvent,
   NotificationItem,
 } from './types';
 import { dataStore } from './services/dataStore';
@@ -63,7 +58,6 @@ import {
   Utensils,
   Shield,
   Wifi,
-  PartyPopper,
 } from 'lucide-react';
 
 interface Toast {
@@ -95,12 +89,6 @@ export const App: React.FC = () => {
   );
   const [memberships, setMemberships] = useState<CommitteeMembership[]>(() =>
     dataStore.getMemberships()
-  );
-  const [announcements, setAnnouncements] = useState<Announcement[]>(() =>
-    dataStore.getAnnouncements()
-  );
-  const [events, setEvents] = useState<CampusEvent[]>(() =>
-    dataStore.getEvents()
   );
   const [notifications, setNotifications] = useState<NotificationItem[]>(() =>
     dataStore.getNotifications(dataStore.getCurrentUser().uid)
@@ -174,8 +162,6 @@ export const App: React.FC = () => {
     setTickets([...dataStore.getTickets()]);
     setCommunities([...dataStore.getCommunities()]);
     setMemberships([...dataStore.getMemberships()]);
-    setAnnouncements([...dataStore.getAnnouncements()]);
-    setEvents([...dataStore.getEvents()]);
     setNotifications([...dataStore.getNotifications(currentUser.uid)]);
   };
 
@@ -316,27 +302,6 @@ export const App: React.FC = () => {
     showToast(`Membership ${decision.toLowerCase()}`);
   };
 
-  // Announcements & Events
-  const handleAddAnnouncement = (ann: Announcement) => {
-    dataStore.addAnnouncement(ann);
-    if (!isDemoMode) {
-      firestoreService.addAnnouncement(ann);
-    }
-    refreshData();
-    showToast('Campus announcement broadcasted');
-  };
-
-  const handleAddEvent = (evt: CampusEvent) => {
-    dataStore.addEvent(evt);
-    if (!isDemoMode) {
-      firestoreService.addEvent(evt);
-    }
-    refreshData();
-    showToast('Campus event added to calendar');
-  };
-
-
-
   // Notification controls
   const handleMarkNotificationAsRead = (id: string) => {
     dataStore.markNotificationAsRead(id);
@@ -362,7 +327,6 @@ export const App: React.FC = () => {
     { label: 'Mess', icon: Utensils },
     { label: 'Security', icon: Shield },
     { label: 'Internet / Connectivity', icon: Wifi },
-    { label: 'Events / Clubs', icon: PartyPopper },
   ];
 
   const displayedTickets = tickets
@@ -465,7 +429,6 @@ export const App: React.FC = () => {
           if (t) setSelectedTicket(t);
         }}
         onNavigateTab={(tab) => setActiveTab(tab)}
-        upcomingEvents={events}
         onResetDemo={handleResetDemo}
       />
 
@@ -658,17 +621,6 @@ export const App: React.FC = () => {
               currentUser={currentUser}
               onProposeMembership={handleProposeMembership}
               onReviewMembership={handleReviewMembership}
-            />
-          )}
-
-          {/* Tab 4: Announcements & Events */}
-          {activeTab === 'events' && (
-            <AnnouncementsEventsView
-              announcements={announcements}
-              events={events}
-              currentUser={currentUser}
-              onAddAnnouncement={handleAddAnnouncement}
-              onAddEvent={handleAddEvent}
             />
           )}
 

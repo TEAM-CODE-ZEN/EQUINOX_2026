@@ -4,22 +4,16 @@ import {
   TicketHistoryEvent,
   Community,
   CommitteeMembership,
-  Announcement,
-  CampusEvent,
   NotificationItem,
   UserProfile,
   TicketStatus,
-  GatePass,
 } from '../types';
 import {
   DEMO_USERS,
   DEMO_COMMUNITIES,
   INITIAL_DEMO_TICKETS,
-  INITIAL_ANNOUNCEMENTS,
-  INITIAL_EVENTS,
   INITIAL_MEMBERSHIPS,
   INITIAL_NOTIFICATIONS,
-  INITIAL_GATE_PASSES,
 } from './mockData';
 
 const STORAGE_KEYS = {
@@ -29,10 +23,7 @@ const STORAGE_KEYS = {
   HISTORY: 'campusaccord_history',
   COMMUNITIES: 'campusaccord_communities',
   MEMBERSHIPS: 'campusaccord_memberships',
-  ANNOUNCEMENTS: 'campusaccord_announcements',
-  EVENTS: 'campusaccord_events',
   NOTIFICATIONS: 'campusaccord_notifications',
-  GATE_PASSES: 'campusaccord_gate_passes',
 };
 
 // Initial comments for demo tickets
@@ -403,40 +394,6 @@ class DataStoreService {
     });
   }
 
-  // Announcements
-  getAnnouncements(): Announcement[] {
-    return this.getStorage<Announcement[]>(STORAGE_KEYS.ANNOUNCEMENTS, INITIAL_ANNOUNCEMENTS);
-  }
-
-  addAnnouncement(ann: Announcement): void {
-    const all = this.getAnnouncements();
-    all.unshift(ann);
-    this.setStorage(STORAGE_KEYS.ANNOUNCEMENTS, all);
-
-    // Create notification for active demo user
-    this.addNotification({
-      id: `notif-${Date.now()}`,
-      recipientUid: 'user-student-1',
-      title: `New Campus Announcement`,
-      message: `${ann.authorName} published: "${ann.title}"`,
-      type: 'announcement',
-      linkTab: 'events',
-      read: false,
-      createdAt: new Date().toISOString(),
-    });
-  }
-
-  // Events
-  getEvents(): CampusEvent[] {
-    return this.getStorage<CampusEvent[]>(STORAGE_KEYS.EVENTS, INITIAL_EVENTS);
-  }
-
-  addEvent(event: CampusEvent): void {
-    const all = this.getEvents();
-    all.unshift(event);
-    this.setStorage(STORAGE_KEYS.EVENTS, all);
-  }
-
   // Notifications
   getNotifications(userId: string): NotificationItem[] {
     const all = this.getStorage<NotificationItem[]>(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
@@ -466,90 +423,6 @@ class DataStoreService {
     this.setStorage(STORAGE_KEYS.NOTIFICATIONS, all);
   }
 
-  // Gate Passes
-  getGatePasses(): GatePass[] {
-    return this.getStorage<GatePass[]>(STORAGE_KEYS.GATE_PASSES, INITIAL_GATE_PASSES);
-  }
-
-  applyGatePass(pass: GatePass): void {
-    const passes = this.getGatePasses();
-    passes.unshift(pass);
-    this.setStorage(STORAGE_KEYS.GATE_PASSES, passes);
-
-    // Notify Warden (Dr. Radhika Iyer)
-    this.addNotification({
-      id: `notif-${Date.now()}`,
-      recipientUid: 'user-warden-1',
-      title: 'New Gate Pass Request',
-      message: `${pass.name} (${pass.rollNo}, ${pass.roomNo}) applied for a gate pass to visit ${pass.visitAddress.split(',')[0]} from ${new Date(pass.dateFrom).toLocaleDateString()}.`,
-      type: 'gate_pass',
-      linkTab: 'gate-pass',
-      read: false,
-      createdAt: new Date().toISOString(),
-    });
-  }
-
-  reviewGatePass(passId: string, status: 'Approved' | 'Rejected', warden: UserProfile, reason?: string): void {
-    const passes = this.getGatePasses();
-    const pass = passes.find((p) => p.id === passId);
-    if (!pass) return;
-
-    pass.status = status;
-    if (status === 'Approved') {
-      pass.approvedAt = new Date().toISOString();
-      pass.approvedByWardenName = `${warden.name} (${warden.designation || 'Warden'})`;
-      pass.qrCodeData = `CAMPUS-ACCORD-VERIFIED:${pass.passNumber}:${pass.rollNo}:APPROVED`;
-    } else {
-      pass.rejectionReason = reason;
-      pass.qrCodeData = `CAMPUS-ACCORD-REJECTED:${pass.passNumber}:${pass.rollNo}`;
-    }
-
-    this.setStorage(STORAGE_KEYS.GATE_PASSES, passes);
-
-    // Notify student
-    this.addNotification({
-      id: `notif-${Date.now()}`,
-      recipientUid: pass.studentUid,
-      title: `Gate Pass ${status}`,
-      message: `Your gate pass application #${pass.passNumber} was ${status.toLowerCase()} by ${warden.name}.${reason ? ' Reason: ' + reason : ''}`,
-      type: 'gate_pass',
-      linkTab: 'gate-pass',
-      read: false,
-      createdAt: new Date().toISOString(),
-    });
-  }
-
-  recordGatePassSecurity(passId: string, action: 'checkout' | 'checkin'): void {
-    const passes = this.getGatePasses();
-    const pass = passes.find((p) => p.id === passId);
-    if (!pass) return;
-
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (action === 'checkout') {
-      pass.status = 'Out of Campus';
-      pass.securityCheckOutTime = timeStr;
-    } else {
-      pass.status = 'Returned';
-      pass.securityCheckInTime = timeStr;
-    }
-
-    this.setStorage(STORAGE_KEYS.GATE_PASSES, passes);
-
-    // Notify student
-    this.addNotification({
-      id: `notif-${Date.now()}`,
-      recipientUid: pass.studentUid,
-      title: action === 'checkout' ? 'Gate Security Check-Out Recorded' : 'Gate Security Return Logged',
-      message: action === 'checkout'
-        ? `Security Gate 1 logged your departure at ${timeStr}. Keep your digital pass ready upon return.`
-        : `Security Gate 1 logged your safe return to campus at ${timeStr}. Gate pass closed.`,
-      type: 'gate_pass',
-      linkTab: 'gate-pass',
-      read: false,
-      createdAt: new Date().toISOString(),
-    });
-  }
-
   // Reset Demo Database
   resetDemoData(): void {
     localStorage.removeItem(STORAGE_KEYS.TICKETS);
@@ -557,10 +430,7 @@ class DataStoreService {
     localStorage.removeItem(STORAGE_KEYS.HISTORY);
     localStorage.removeItem(STORAGE_KEYS.COMMUNITIES);
     localStorage.removeItem(STORAGE_KEYS.MEMBERSHIPS);
-    localStorage.removeItem(STORAGE_KEYS.ANNOUNCEMENTS);
-    localStorage.removeItem(STORAGE_KEYS.EVENTS);
     localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
-    localStorage.removeItem(STORAGE_KEYS.GATE_PASSES);
   }
 }
 

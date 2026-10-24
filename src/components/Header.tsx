@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Bell,
-  Calendar,
   ShieldCheck,
   RotateCcw,
   ChevronDown,
@@ -9,7 +8,7 @@ import {
   ExternalLink,
   Layers,
 } from 'lucide-react';
-import { UserProfile, NotificationItem, CampusEvent } from '../types';
+import { UserProfile, NotificationItem } from '../types';
 import { DEMO_USERS } from '../services/mockData';
 import { isDemoMode } from '../services/firebase';
 
@@ -21,7 +20,6 @@ interface HeaderProps {
   onMarkAllNotificationsAsRead: () => void;
   onOpenTicket: (ticketId: string) => void;
   onNavigateTab: (tab: string) => void;
-  upcomingEvents: CampusEvent[];
   onResetDemo: () => void;
 }
 
@@ -33,16 +31,13 @@ export const Header: React.FC<HeaderProps> = ({
   onMarkAllNotificationsAsRead,
   onOpenTicket,
   onNavigateTab,
-  upcomingEvents,
   onResetDemo,
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
-  const [showEventMenu, setShowEventMenu] = useState(false);
 
   const roleMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
-  const eventMenuRef = useRef<HTMLDivElement>(null);
 
   // Close menus on outside click
   useEffect(() => {
@@ -53,16 +48,12 @@ export const Header: React.FC<HeaderProps> = ({
       if (notifMenuRef.current && !notifMenuRef.current.contains(e.target as Node)) {
         setShowNotifMenu(false);
       }
-      if (eventMenuRef.current && !eventMenuRef.current.contains(e.target as Node)) {
-        setShowEventMenu(false);
-      }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const nextEvent = upcomingEvents[0];
 
   return (
     <header className="sticky top-0 z-40 bg-[#FAF6EE]/90 backdrop-blur-xl border-b border-mocha-200/80 shadow-[0_1px_3px_0_rgba(61,6,16,0.03)] transition-all">
@@ -99,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right Section: Events, Notifications, Role Switcher */}
+        {/* Right Section: Notifications, Reset & Role Switcher */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Quick Demo Reset Button */}
           <button
@@ -110,66 +101,6 @@ export const Header: React.FC<HeaderProps> = ({
             <RotateCcw className="w-3.5 h-3.5 text-mocha-600 group-hover:rotate-180 transition-transform duration-500" />
             <span>Reset Demo</span>
           </button>
-
-          {/* Upcoming Event Preview Pill */}
-          {nextEvent && (
-            <div className="relative" ref={eventMenuRef}>
-              <button
-                onClick={() => setShowEventMenu(!showEventMenu)}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-mocha-900 bg-mocha-50 hover:bg-mocha-100/90 rounded-xl border border-mocha-200/90 shadow-subtle transition-all duration-200 active:scale-95"
-              >
-                <div className="w-5 h-5 rounded-lg bg-burgundy-50 flex items-center justify-center">
-                  <Calendar className="w-3.5 h-3.5 text-burgundy-700" />
-                </div>
-                <span className="max-w-[130px] truncate">{nextEvent.title}</span>
-                <span className="text-[10px] text-burgundy-800 font-bold bg-burgundy-50 px-1.5 py-0.5 rounded-md border border-burgundy-200/60">
-                  {nextEvent.dateTime.split(',')[0]}
-                </span>
-              </button>
-
-              {showEventMenu && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_20px_40px_-8px_rgba(37,3,9,0.18)] border border-mocha-200/90 p-4 z-50 animate-sonner">
-                  <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-mocha-100">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-burgundy-700" />
-                      <h4 className="text-xs font-bold text-burgundy-950 uppercase tracking-wider">
-                        Campus Events
-                      </h4>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowEventMenu(false);
-                        onNavigateTab('events');
-                      }}
-                      className="text-xs text-burgundy-700 hover:text-burgundy-900 font-bold flex items-center gap-1 transition-colors"
-                    >
-                      View All <ExternalLink className="w-3 h-3" />
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {upcomingEvents.slice(0, 3).map((evt) => (
-                      <div
-                        key={evt.id}
-                        className="text-left p-2.5 rounded-xl hover:bg-mocha-50/70 border border-mocha-100 transition-all cursor-pointer"
-                        onClick={() => {
-                          setShowEventMenu(false);
-                          onNavigateTab('events');
-                        }}
-                      >
-                        <p className="text-xs font-bold text-burgundy-950 line-clamp-1">{evt.title}</p>
-                        <div className="flex items-center justify-between text-[11px] text-mocha-700 mt-1">
-                          <span>{evt.dateTime}</span>
-                          <span className="text-mocha-900 font-medium bg-mocha-100 px-1.5 py-0.5 rounded">
-                            {evt.location}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Notifications Dropdown with Sonner-style design */}
           <div className="relative" ref={notifMenuRef}>

@@ -97,11 +97,6 @@ export const getCategoryTheme = (category: TicketCategory) => {
         bg: 'bg-latte-200 text-mocha-900 border-mocha-200/80',
         iconColor: 'text-mocha-600',
       };
-    case 'Events / Clubs':
-      return {
-        bg: 'bg-burgundy-100/70 text-burgundy-950 border-burgundy-200/80',
-        iconColor: 'text-burgundy-800',
-      };
     default:
       return {
         bg: 'bg-latte-100 text-mocha-800 border-mocha-200',

@@ -44,7 +44,6 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     'Mess',
     'Security',
     'Internet / Connectivity',
-    'Events / Clubs',
   ];
 
   const categoryCounts = categories.map((cat) => ({

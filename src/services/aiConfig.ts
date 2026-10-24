@@ -42,14 +42,6 @@ export const CAMPUS_ROUTING_GUIDE: CampusRoutingRule[] = [
     keywords: ['wifi', 'wi-fi', 'internet', 'router', 'ethernet', 'lan', 'connection', 'dns', 'portal', 'speed'],
     description: 'Hostel and campus Wi-Fi outages, network speed drops, and student portal connectivity.',
   },
-  {
-    category: 'Events / Clubs',
-    communityId: 'comm-events',
-    communityName: 'Events / Clubs',
-    defaultStaffDesignation: 'Event Coordinator',
-    keywords: ['auditorium', 'club', 'event', 'speaker', 'mic', 'projector', 'hackathon', 'fest', 'stage', 'sports'],
-    description: 'Auditorium equipment, club room bookings, sound systems, and student event coordination.',
-  },
 ];
 
 export const AI_CONFIG = {
