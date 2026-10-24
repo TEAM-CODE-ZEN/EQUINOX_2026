@@ -21,6 +21,8 @@ import {
 } from '../types';
 import { formatRelativeTime } from '../utils/formatters';
 import { DEMO_USERS } from '../services/mockData';
+import { AI_FEATURES } from '../features/ai/config';
+import { InvestigatorTab } from '../features/ai/components/InvestigatorTab';
 
 interface TicketDetailModalProps {
   ticket: Ticket;
@@ -33,6 +35,10 @@ interface TicketDetailModalProps {
   onAssignStaff: (staffUid: string, staffName: string) => void;
   onToggleEndorse: (ticketId: string) => void;
   onReopenTicket: (reason: string) => void;
+  allTickets?: Ticket[];
+  onUpdateTicket?: (updatedTicket: Ticket) => void;
+  onSelectSimilarTicket?: (ticketId: string) => void;
+  rootCauseClusterTitle?: string;
 }
 
 export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
@@ -46,7 +52,12 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   onAssignStaff,
   onToggleEndorse,
   onReopenTicket,
+  allTickets = [],
+  onUpdateTicket,
+  onSelectSimilarTicket,
+  rootCauseClusterTitle,
 }) => {
+  const [activeModalTab, setActiveModalTab] = useState<'overview' | 'investigator'>('overview');
   const [newCommentText, setNewCommentText] = useState('');
   const [showResolveModal, setShowResolveModal] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState('');
@@ -238,10 +249,70 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
           </div>
         </div>
 
+        {/* Modal Segmented Tabs (Overview vs AI Investigator) - Management / Admin Only */}
+        {AI_FEATURES.investigator && isStaffOrAdmin && (
+          <div className="px-5 sm:px-6 pt-2 pb-0 bg-white flex items-center gap-3 border-b border-mocha-100 flex-shrink-0">
+            <button
+              onClick={() => setActiveModalTab('overview')}
+              className={`pb-2.5 px-2 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+                activeModalTab === 'overview'
+                  ? 'border-[#15803D] text-[#15803D]'
+                  : 'border-transparent text-mocha-600 hover:text-gray-900'
+              }`}
+            >
+              Overview & Messages
+            </button>
+            <button
+              onClick={() => setActiveModalTab('investigator')}
+              className={`pb-2.5 px-2 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeModalTab === 'investigator'
+                  ? 'border-purple-600 text-purple-700'
+                  : 'border-transparent text-mocha-600 hover:text-gray-900'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+              <span>AI Investigator</span>
+              {ticket.investigation?.report && (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Scrollable Content Body */}
         <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5 bg-mocha-50/30">
+          {activeModalTab === 'investigator' && AI_FEATURES.investigator && isStaffOrAdmin ? (
+            <InvestigatorTab
+              ticket={ticket}
+              allTickets={allTickets}
+              currentUser={currentUser}
+              onUpdateTicket={onUpdateTicket || (() => {})}
+              onSelectSimilarTicket={onSelectSimilarTicket}
+              onAddComment={onAddComment}
+              rootCauseClusterTitle={rootCauseClusterTitle}
+            />
+          ) : (
+            <>
+              {/* Root Cause Link Card if present */}
+              {ticket.rootCauseId && (
+                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-between gap-3 shadow-subtle">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-800 flex-shrink-0">
+                      <Sparkles className="w-4 h-4 text-indigo-700" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase font-bold text-indigo-700 block">
+                        Systemic Root-Cause Linked
+                      </span>
+                      <span className="text-xs font-bold text-indigo-950">
+                        {rootCauseClusterTitle || `Part of root cause cluster #${ticket.rootCauseId}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-          {/* Current Status Update Banner */}
+              {/* Current Status Update Banner */}
           {ticket.status === 'Resolved' ? (
             <div className="p-4 rounded-2xl bg-green-50 border border-green-200">
               <div className="flex items-center gap-2 mb-1">
@@ -466,6 +537,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               </button>
             </form>
           </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}

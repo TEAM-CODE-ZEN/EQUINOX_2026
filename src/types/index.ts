@@ -34,6 +34,8 @@ export type TicketStatus =
   | 'Under Review'
   | 'Assigned'
   | 'In Progress'
+  | 'Pending Verification'
+  | 'Awaiting Student Confirmation'
   | 'Resolved'
   | 'Reopened';
 
@@ -63,7 +65,11 @@ export interface TicketHistoryEvent {
     | 'DUPLICATE_CONFIRMED'
     | 'ENDORSED'
     | 'RESOLVED'
-    | 'REOPENED';
+    | 'REOPENED'
+    | 'INVESTIGATION_RUN'
+    | 'ROOT_CAUSE_LINKED'
+    | 'VERIFICATION_RUN'
+    | 'STUDENT_CONFIRMED';
   actorUid: string;
   actorName: string;
   description: string;
@@ -110,6 +116,35 @@ export interface Ticket {
     matchedTicketId?: string;
     similarityScore?: number;
   };
+  // Shared Data Model Extensions (Optional)
+  rootCauseId?: string;
+  beforeImage?: string;
+  afterImage?: string;
+  resolutionNote?: string;
+  verification?: {
+    verdict: 'Verified' | 'Not Verified' | 'Inconclusive';
+    confidence: number;
+    what_was_wrong?: string;
+    what_changed?: string;
+    reasoning: string;
+    checks: { item: string; passed: boolean }[];
+    red_flags?: string[];
+    checkedAt: string;
+    studentConfirmation?: {
+      confirmed: boolean;
+      comment?: string;
+      confirmedAt: string;
+    };
+  };
+  investigation?: {
+    report: any;
+    chat: {
+      role: 'user' | 'assistant';
+      text: string;
+      timestamp: string;
+    }[];
+  };
+  demo?: boolean;
 }
 
 export interface CommunityMember {

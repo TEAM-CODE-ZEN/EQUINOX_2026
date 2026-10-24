@@ -289,6 +289,43 @@ export const App: React.FC = () => {
     }
   };
 
+  // Full ticket update (used by AI Investigator, Root Cause & Verification)
+  const handleUpdateFullTicket = (updatedTicket: Ticket) => {
+    dataStore.saveTicket(updatedTicket);
+    if (!isDemoMode) {
+      firestoreService.saveTicket(updatedTicket);
+    }
+    // Log AI action in history if investigation was run
+    if (updatedTicket.investigation?.report && !selectedTicket?.investigation?.report) {
+      dataStore.addHistoryEvent({
+        id: `hist-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        ticketId: updatedTicket.id,
+        eventType: 'INVESTIGATION_RUN',
+        actorUid: 'ai-system',
+        actorName: 'AI',
+        description: `AI Investigation conducted. Department: ${updatedTicket.investigation.report.suggested_department}`,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    // Log AI action if priority was updated by AI
+    if (selectedTicket && updatedTicket.priority !== selectedTicket.priority) {
+      dataStore.addHistoryEvent({
+        id: `hist-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        ticketId: updatedTicket.id,
+        eventType: 'STATUS_CHANGED',
+        actorUid: 'ai-system',
+        actorName: 'AI',
+        description: `Priority updated to ${updatedTicket.priority} based on AI investigation`,
+        previousValue: selectedTicket.priority,
+        newValue: updatedTicket.priority,
+        timestamp: new Date().toISOString(),
+      });
+      showToast(`Priority updated to ${updatedTicket.priority} by AI`, 'info');
+    }
+    refreshData();
+    setSelectedTicket(updatedTicket);
+  };
+
   // Comments
   const handleAddComment = (
     ticketId: string,
@@ -812,6 +849,12 @@ export const App: React.FC = () => {
           }
           onToggleEndorse={(id) => handleToggleEndorse(id)}
           onReopenTicket={(reason) => handleReopenTicket(selectedTicket.id, reason)}
+          allTickets={tickets}
+          onUpdateTicket={handleUpdateFullTicket}
+          onSelectSimilarTicket={(simId) => {
+            const t = dataStore.getTicketById(simId);
+            if (t) setSelectedTicket(t);
+          }}
         />
       )}
     </div>
