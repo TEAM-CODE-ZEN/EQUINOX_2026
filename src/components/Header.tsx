@@ -75,17 +75,18 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="font-extrabold text-[17px] text-burgundy-950 tracking-tight font-sans">
                 Campus<span className="text-burgundy-700">Accord</span>
               </span>
-              {isDemoMode ? (
-                <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-burgundy-50 text-burgundy-900 border border-burgundy-200/80 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-burgundy-600"></span>
-                  Demo Sandbox
-                </span>
-              ) : (
-                <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                  Live Cloud
-                </span>
-              )}
+              <button
+                onClick={() => onNavigateTab(currentUser.role === 'Admin' ? 'admin-management' : 'staff-dashboard')}
+                title="Click to view Cloud APIs, Firebase Firestore & AI Engine status"
+                className={`hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border shadow-sm transition-all cursor-pointer active:scale-95 ${
+                  isDemoMode
+                    ? 'bg-burgundy-50 hover:bg-burgundy-100 text-burgundy-900 border-burgundy-200/80'
+                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200/80'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? 'bg-burgundy-600' : 'bg-emerald-600 animate-pulse'}`}></span>
+                <span>{isDemoMode ? 'Sandbox Resilient' : 'Live Cloud & AI'}</span>
+              </button>
             </div>
             <p className="hidden md:block text-[11px] text-mocha-700 font-medium tracking-normal -mt-0.5">
               Every concern heard. Every action tracked.
