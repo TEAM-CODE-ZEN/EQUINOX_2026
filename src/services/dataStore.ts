@@ -336,10 +336,15 @@ class DataStoreService {
     return DEMO_COMMUNITIES.map((defaultComm) => {
       const existing = stored.find((c) => c.id === defaultComm.id);
       if (!existing) return defaultComm;
+      const hasValidMembers =
+        existing.members &&
+        existing.members.length >= 5 &&
+        existing.members.every((m) => m.name && m.phone);
+
       return {
         ...defaultComm,
         ...existing,
-        members: existing.members && existing.members.length >= 5 ? existing.members : defaultComm.members,
+        members: hasValidMembers ? existing.members : defaultComm.members,
         trackRecord: existing.trackRecord || defaultComm.trackRecord,
       };
     });

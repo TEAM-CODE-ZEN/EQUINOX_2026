@@ -217,10 +217,59 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* 5 Committee Members & Contact Numbers Roster */}
+                <div className="pt-3 border-t border-mocha-100/90 space-y-2">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-gray-800 uppercase tracking-wider font-mono text-[10px] flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-[#15803D]" />
+                      Committee Members ({Math.min(membersList.length, 5)}):
+                    </span>
+                    <span className="text-[10px] text-[#15803D] font-bold">
+                      Direct Contacts
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {membersList.slice(0, 5).map((m, idx) => (
+                      <div
+                        key={m.id || idx}
+                        className="flex items-center justify-between p-1.5 sm:p-2 rounded-xl bg-mocha-50/70 border border-mocha-100 hover:bg-emerald-50/80 hover:border-emerald-200 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 min-w-0 pr-1">
+                          <img
+                            src={m.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80"}
+                            alt={m.name}
+                            className="w-6 h-6 rounded-full object-cover border border-mocha-200 flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <span className="font-bold text-gray-900 truncate block text-[11px] leading-tight">
+                              {m.name}
+                            </span>
+                            <span className="text-[10px] text-mocha-500 font-medium truncate block leading-tight">
+                              {m.role}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Direct Contact Phone Number Badge */}
+                        <a
+                          href={`tel:${m.phone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-shrink-0 flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200 px-2 py-0.5 rounded-lg border border-emerald-300/60 transition-colors"
+                          title={`Call ${m.name}`}
+                        >
+                          <Phone className="w-2.5 h-2.5 text-emerald-700" />
+                          <span>{m.phone}</span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Bottom Lead info & Click Indicator */}
-              <div className="mt-5 pt-3.5 border-t border-mocha-100 flex items-center justify-between text-xs">
+              <div className="mt-4 pt-3.5 border-t border-mocha-100 flex items-center justify-between text-xs">
                 <div>
                   <span className="text-[10px] text-mocha-400 block font-mono">Lead Officer:</span>
                   <strong className="text-gray-900 text-xs">{comm.leadName || 'Assigned Staff'}</strong>
@@ -475,8 +524,22 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                             {m.role}
                           </p>
 
-                          <div className="mt-2 space-y-0.5 text-[10px] text-mocha-600 font-medium">
-                            <div className="flex items-center gap-1 truncate">
+                          <div className="mt-2.5 space-y-1.5 text-[10px] text-mocha-600 font-medium">
+                            {/* Prominent Direct Contact Phone Badge */}
+                            <a
+                              href={`tel:${m.phone}`}
+                              className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#15803D] font-mono font-bold text-xs transition-colors"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <Phone className="w-3.5 h-3.5 text-emerald-700" />
+                                <span>{m.phone}</span>
+                              </div>
+                              <span className="text-[10px] font-sans font-semibold text-emerald-800 bg-emerald-200/60 px-1.5 py-0.5 rounded">
+                                Call / SMS
+                              </span>
+                            </a>
+
+                            <div className="flex items-center gap-1 truncate pt-0.5">
                               <MapPin className="w-3 h-3 text-mocha-400 flex-shrink-0" />
                               <span className="truncate">{m.roomOrOffice}</span>
                             </div>
