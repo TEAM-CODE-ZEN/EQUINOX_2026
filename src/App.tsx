@@ -326,6 +326,59 @@ export const App: React.FC = () => {
       });
       showToast(`Priority updated to ${updatedTicket.priority} by AI`, 'info');
     }
+
+    // Feature C: Log AI resolution verification
+    if (updatedTicket.verification && !selectedTicket?.verification) {
+      dataStore.addHistoryEvent({
+        id: `hist-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        ticketId: updatedTicket.id,
+        eventType: 'VERIFICATION_RUN',
+        actorUid: 'ai-system',
+        actorName: 'AI',
+        description: `Evidence-based resolution verified with AI (Confidence: ${updatedTicket.verification.confidence}%). Awaiting student confirmation.`,
+        timestamp: new Date().toISOString(),
+      });
+      showToast('Resolution verified with AI. Sent to student for confirmation.', 'success');
+    }
+
+    // Feature C: Log student confirmation
+    if (
+      updatedTicket.status === 'Resolved' &&
+      selectedTicket?.status === 'Awaiting Student Confirmation'
+    ) {
+      dataStore.addHistoryEvent({
+        id: `hist-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        ticketId: updatedTicket.id,
+        eventType: 'STUDENT_CONFIRMED',
+        actorUid: currentUser.uid,
+        actorName: currentUser.name,
+        description: 'Student confirmed repair is satisfactory. Ticket officially resolved.',
+        previousValue: selectedTicket.status,
+        newValue: 'Resolved',
+        timestamp: new Date().toISOString(),
+      });
+      showToast('Thank you! Issue marked officially resolved.', 'success');
+    }
+
+    // Feature C: Log student rejection & priority bump
+    if (
+      updatedTicket.status === 'Reopened' &&
+      selectedTicket?.status === 'Awaiting Student Confirmation'
+    ) {
+      dataStore.addHistoryEvent({
+        id: `hist-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        ticketId: updatedTicket.id,
+        eventType: 'REOPENED',
+        actorUid: 'ai-system',
+        actorName: 'AI',
+        description: `Student rejected fix. Priority escalated to ${updatedTicket.priority} by AI. Reopened for technician dispatch.`,
+        previousValue: selectedTicket.status,
+        newValue: 'Reopened',
+        timestamp: new Date().toISOString(),
+      });
+      showToast(`Ticket reopened and priority escalated to ${updatedTicket.priority}`, 'warning');
+    }
+
     refreshData();
     setSelectedTicket(updatedTicket);
   };

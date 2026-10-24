@@ -18,11 +18,15 @@ import {
   TicketHistoryEvent,
   UserProfile,
   TicketStatus,
+  TicketPriority,
 } from '../types';
 import { formatRelativeTime } from '../utils/formatters';
 import { DEMO_USERS } from '../services/mockData';
 import { AI_FEATURES } from '../features/ai/config';
 import { InvestigatorTab } from '../features/ai/components/InvestigatorTab';
+import { ResolutionVerificationModal } from '../features/ai/components/ResolutionVerificationModal';
+import { StudentVerificationCard } from '../features/ai/components/StudentVerificationCard';
+import { ResolutionVerificationResult } from '../features/ai/types';
 
 interface TicketDetailModalProps {
   ticket: Ticket;
@@ -63,6 +67,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [showReopenModal, setShowReopenModal] = useState(false);
   const [reopenReason, setReopenReason] = useState('');
+  const [showAiVerificationModal, setShowAiVerificationModal] = useState(false);
 
   const isStaffOrAdmin =
     currentUser.role === 'Campus Staff' || currentUser.role === 'Admin';
@@ -97,8 +102,106 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     setReopenReason('');
   };
 
+  // Feature C: Handle AI verification completion
+  const handleAiVerificationComplete = (
+    updatedStatus: TicketStatus,
+    afterImage: string,
+    resolutionNote: string,
+    verification: ResolutionVerificationResult
+  ) => {
+    const updatedTicket: Ticket = {
+      ...ticket,
+      status: updatedStatus,
+      afterImage,
+      resolutionNote,
+      resolutionNotes: resolutionNote,
+      verification,
+      updatedAt: new Date().toISOString(),
+    };
+    if (onUpdateTicket) {
+      onUpdateTicket(updatedTicket);
+    } else {
+      onUpdateStatus(updatedStatus, resolutionNote);
+    }
+    setShowAiVerificationModal(false);
+  };
+
+  const handleEscalateToAdmin = (escalationReason: string) => {
+    const updatedTicket: Ticket = {
+      ...ticket,
+      status: 'Under Review',
+      priority: 'High',
+      updatedAt: new Date().toISOString(),
+    };
+    onAddComment(`[AI Verification Notice] Verification failed or inconclusive: ${escalationReason}. Escalated to campus administration for manual inspection.`, true);
+    if (onUpdateTicket) {
+      onUpdateTicket(updatedTicket);
+    } else {
+      onUpdateStatus('Under Review', escalationReason);
+    }
+  };
+
+  // Feature C: Student confirms fix
+  const handleConfirmFixed = () => {
+    const updatedTicket: Ticket = {
+      ...ticket,
+      status: 'Resolved',
+      updatedAt: new Date().toISOString(),
+      verification: ticket.verification
+        ? {
+            ...ticket.verification,
+            studentConfirmation: {
+              confirmed: true,
+              confirmedAt: new Date().toISOString(),
+            },
+          }
+        : undefined,
+    };
+    if (onUpdateTicket) {
+      onUpdateTicket(updatedTicket);
+    } else {
+      onUpdateStatus('Resolved');
+    }
+  };
+
+  // Feature C: Student rejects fix
+  const handleRejectFixed = (reason: string) => {
+    const priorityMap: Record<TicketPriority, TicketPriority> = {
+      Low: 'Medium',
+      Medium: 'High',
+      High: 'Critical',
+      Critical: 'Critical',
+    };
+    const nextPriority = priorityMap[ticket.priority] || 'High';
+
+    const updatedTicket: Ticket = {
+      ...ticket,
+      status: 'Reopened',
+      priority: nextPriority,
+      reopenCount: (ticket.reopenCount || 0) + 1,
+      updatedAt: new Date().toISOString(),
+      verification: ticket.verification
+        ? {
+            ...ticket.verification,
+            studentConfirmation: {
+              confirmed: false,
+              comment: reason,
+              confirmedAt: new Date().toISOString(),
+            },
+          }
+        : undefined,
+    };
+    onAddComment(`[Student Resolution Rejection] ${reason}`, false);
+    if (onUpdateTicket) {
+      onUpdateTicket(updatedTicket);
+    } else {
+      onReopenTicket(reason);
+    }
+  };
+
   const getStepStatus = () => {
     if (ticket.status === 'Resolved') return 3;
+    if (ticket.status === 'Awaiting Student Confirmation' || ticket.status === 'Pending Verification') return 2;
     if (ticket.status === 'In Progress' || ticket.assignedStaffName) return 2;
     return 1;
   };
@@ -293,6 +396,19 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             />
           ) : (
             <>
+              {/* Student Resolution Verification Card (Feature C) */}
+              {AI_FEATURES.verification &&
+                (ticket.status === 'Awaiting Student Confirmation' ||
+                  ticket.status === 'Pending Verification' ||
+                  (ticket.verification && ticket.status !== 'Resolved')) && (
+                  <StudentVerificationCard
+                    ticket={ticket}
+                    currentUserUid={currentUser.uid}
+                    onConfirmFixed={handleConfirmFixed}
+                    onRejectFixed={handleRejectFixed}
+                  />
+              )}
+
               {/* Root Cause Link Card if present */}
               {ticket.rootCauseId && (
                 <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-between gap-3 shadow-subtle">
@@ -461,8 +577,14 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
                 {ticket.status !== 'Resolved' && (
                   <button
-                    onClick={() => setShowResolveModal(true)}
-                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold transition-all"
+                    onClick={() => {
+                      if (AI_FEATURES.verification) {
+                        setShowAiVerificationModal(true);
+                      } else {
+                        setShowResolveModal(true);
+                      }
+                    }}
+                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold transition-all cursor-pointer"
                   >
                     Mark Fixed
                   </button>
@@ -622,6 +744,16 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Resolution Verification Modal (Feature C) */}
+      {showAiVerificationModal && AI_FEATURES.verification && (
+        <ResolutionVerificationModal
+          ticket={ticket}
+          onClose={() => setShowAiVerificationModal(false)}
+          onVerificationComplete={handleAiVerificationComplete}
+          onEscalateToAdmin={handleEscalateToAdmin}
+        />
       )}
     </div>
   );

@@ -129,7 +129,7 @@ export interface Ticket {
     reasoning: string;
     checks: { item: string; passed: boolean }[];
     red_flags?: string[];
-    checkedAt: string;
+    checkedAt?: string;
     studentConfirmation?: {
       confirmed: boolean;
       comment?: string;

@@ -60,6 +60,7 @@ export interface ResolutionVerificationResult {
   checks: VerificationCheck[];
   red_flags: string[];
   reasoning: string;
-  recommended_action: string;
+  recommended_action?: string;
+  checkedAt?: string;
   isSimulated?: boolean;
 }
