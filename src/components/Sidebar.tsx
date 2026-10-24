@@ -70,24 +70,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ]
     : [
         {
-          id: 'overview',
-          label: 'Hostel Overview',
-          shortLabel: 'Overview',
-          icon: Layers,
+          id: 'staff-dashboard',
+          label: 'Operations & Triage',
+          shortLabel: 'Operations',
+          icon: LayoutDashboard,
+          badge: openIssuesCount > 0 ? `${openIssuesCount}` : undefined,
         },
         {
           id: 'feed',
           label: 'Campus Issue Feed',
           shortLabel: 'Feed',
           icon: Inbox,
-          badge: openIssuesCount > 0 ? `${openIssuesCount}` : undefined,
-        },
-        {
-          id: 'my-issues',
-          label: 'My Raised Issues',
-          shortLabel: 'My Issues',
-          icon: BookmarkCheck,
-          badge: myIssuesCount > 0 ? `${myIssuesCount}` : undefined,
         },
         {
           id: 'communities',
@@ -105,17 +98,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ];
 
   const adminStaffItems = [
-    ...(isStaffOrAdmin
-      ? [
-          {
-            id: 'staff-dashboard',
-            label: 'Staff Triage Board',
-            shortLabel: 'Staff',
-            icon: LayoutDashboard,
-            badge: 'Staff',
-          },
-        ]
-      : []),
     ...(isAdmin
       ? [
           {
@@ -178,8 +160,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
 
-            {/* Primary Action Button: Raise Issue */}
-            {onRaiseIssue && (
+            {/* Primary Action Button: Raise Issue (Students Only) */}
+            {isStudent && onRaiseIssue && (
               <div className="pt-1">
                 {isCollapsed ? (
                   <div className="relative group flex justify-center">
@@ -460,7 +442,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           );
         })}
-        {onRaiseIssue && (
+        {isStudent && onRaiseIssue && (
           <button
             onClick={onRaiseIssue}
             className="flex flex-col items-center py-1 px-2 rounded-xl text-[10px] font-bold text-emerald-300 transition-all active:scale-95"
@@ -469,27 +451,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Plus className="w-4 h-4 stroke-[2.5]" />
             </div>
             <span>Raise</span>
-          </button>
-        )}
-        {isStaffOrAdmin && (
-          <button
-            onClick={() => onSelectTab('staff-dashboard')}
-            className={`flex flex-col items-center py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 ${
-              activeTab === 'staff-dashboard'
-                ? 'text-latte-50 font-extrabold'
-                : 'text-mocha-400 hover:text-latte-100'
-            }`}
-          >
-            <div
-              className={`p-1 rounded-lg mb-0.5 ${
-                activeTab === 'staff-dashboard'
-                  ? 'bg-white/15 text-latte-50'
-                  : 'text-mocha-400'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-            </div>
-            <span>Staff</span>
           </button>
         )}
       </nav>

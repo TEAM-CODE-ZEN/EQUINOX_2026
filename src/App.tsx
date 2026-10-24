@@ -71,7 +71,10 @@ export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<UserProfile>(() =>
     dataStore.getCurrentUser()
   );
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const user = dataStore.getCurrentUser();
+    return user.role === 'Student' ? 'overview' : 'staff-dashboard';
+  });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('sidebar_collapsed') === 'true';
   });
@@ -154,6 +157,11 @@ export const App: React.FC = () => {
     setCurrentUser(user);
     dataStore.setCurrentUser(user);
     setNotifications(dataStore.getNotifications(user.uid));
+    if (user.role === 'Student') {
+      setActiveTab('overview');
+    } else {
+      setActiveTab('staff-dashboard');
+    }
     showToast(`Switched active profile to ${user.name} (${user.role})`, 'info');
   };
 
@@ -449,27 +457,35 @@ export const App: React.FC = () => {
 
         {/* Dynamic Main Content Area */}
         <main className="flex-1 min-w-0 pb-12">
-          {/* Tab 0: Executive Overview Dashboard */}
+          {/* Tab 0: Overview Dashboard (Student Minimal View or Staff Operations Hub) */}
           {activeTab === 'overview' && (
-            <ExecutiveDashboardView
-              tickets={tickets}
-              currentUser={currentUser}
-              onReportConcern={() => setShowRaiseModal(true)}
-              onSelectTicket={(t) => setSelectedTicket(t)}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              openIssuesCount={openCount}
-              onToggleEndorse={(id, e) => handleToggleEndorse(id, e)}
-              onOpenSettings={() => {
-                const nextUser = currentUser.role === 'Student'
-                  ? DEMO_USERS[1]
-                  : currentUser.role === 'Campus Staff'
-                  ? DEMO_USERS[2]
-                  : DEMO_USERS[0];
-                setCurrentUser(nextUser);
-                dataStore.setCurrentUser(nextUser);
-                showToast(`Switched active profile to ${nextUser.name} (${nextUser.role})`, 'info');
-              }}
-            />
+            currentUser.role === 'Student' ? (
+              <ExecutiveDashboardView
+                tickets={tickets}
+                currentUser={currentUser}
+                onReportConcern={() => setShowRaiseModal(true)}
+                onSelectTicket={(t) => setSelectedTicket(t)}
+                onNavigateTab={(tab) => setActiveTab(tab)}
+                openIssuesCount={openCount}
+                onToggleEndorse={(id, e) => handleToggleEndorse(id, e)}
+                onOpenSettings={() => {
+                  const nextUser = DEMO_USERS[1];
+                  handleSelectUser(nextUser);
+                }}
+              />
+            ) : (
+              <StaffDashboard
+                tickets={tickets}
+                currentUser={currentUser}
+                onOpenTicket={(t) => setSelectedTicket(t)}
+                onUpdateStatus={(id, status, notes) =>
+                  handleUpdateStatus(id, status, notes)
+                }
+                onAssignStaff={(id, sUid, sName) =>
+                  handleAssignStaff(id, sUid, sName)
+                }
+              />
+            )
           )}
           {/* Tab 1: Campus Issue Feed (Staff / Admin full feed) */}
           {activeTab === 'feed' && (
@@ -505,8 +521,8 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Tab 2: Track My Issues (Clean, Minimal, No Clutter under Search) */}
-          {activeTab === 'my-issues' && (
+          {/* Tab 2: Track My Issues (Students Only) */}
+          {activeTab === 'my-issues' && currentUser.role === 'Student' && (
             <div className="space-y-4 max-w-4xl mx-auto">
               {/* Header */}
               <div className="bg-white p-5 rounded-3xl border border-mocha-200/90 shadow-subtle">
@@ -716,8 +732,8 @@ export const App: React.FC = () => {
         </main>
       </div>
 
-      {/* Raise Issue Modal */}
-      {showRaiseModal && (
+      {/* Raise Issue Modal (Students Only) */}
+      {showRaiseModal && currentUser.role === 'Student' && (
         <RaiseIssueModal
           onClose={() => setShowRaiseModal(false)}
           currentUser={currentUser}
