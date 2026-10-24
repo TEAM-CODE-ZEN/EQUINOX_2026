@@ -43,6 +43,7 @@ export interface RootCauseCluster {
   recommended_permanent_fix: string;
   estimated_cost_band: 'Low' | 'Medium' | 'High';
   preventive_action: string;
+  status?: 'Active' | 'Mitigating' | 'Resolved';
   isSimulated?: boolean;
 }
 

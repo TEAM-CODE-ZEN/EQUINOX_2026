@@ -38,6 +38,8 @@ import { DEMO_USERS } from '../services/mockData';
 import { aiService, AiHistoryPeriodStatus } from '../services/aiService';
 import { firestoreService } from '../services/firestoreService';
 import { dataStore } from '../services/dataStore';
+import { AI_FEATURES } from '../features/ai/config';
+import { RootCauseSummaryCard } from '../features/ai/components/RootCauseSummaryCard';
 
 interface StaffDashboardProps {
   tickets: Ticket[];
@@ -45,6 +47,7 @@ interface StaffDashboardProps {
   onOpenTicket: (ticket: Ticket) => void;
   onUpdateStatus?: (ticketId: string, status: TicketStatus, notes?: string) => void;
   onAssignStaff: (ticketId: string, staffUid: string, staffName: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 type TimeRange = '7d' | '30d' | 'all';
@@ -55,6 +58,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   onOpenTicket,
   onUpdateStatus,
   onAssignStaff,
+  onNavigateTab,
 }) => {
   // Timeframe filter state ("past 1 month record last 7 days record")
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
@@ -470,6 +474,14 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
             <X className="w-4 h-4" />
           </button>
         </div>
+      )}
+
+      {/* Root-Cause Detection Summary Widget Card (Feature B) */}
+      {AI_FEATURES.rootCause && (
+        <RootCauseSummaryCard
+          tickets={tickets}
+          onNavigateToRootCauses={() => onNavigateTab?.('root-causes')}
+        />
       )}
 
       {/* ---------------------------------------------------------------------- */}

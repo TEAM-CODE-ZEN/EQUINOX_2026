@@ -13,8 +13,10 @@ import {
   ChevronRight,
   Sparkles,
   Layers,
+  Network,
 } from 'lucide-react';
 import { UserProfile } from '../types';
+import { AI_FEATURES } from '../features/ai/config';
 
 interface SidebarProps {
   activeTab: string;
@@ -91,6 +93,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ];
 
   const adminStaffItems = [
+    ...(isAdmin && AI_FEATURES.rootCause
+      ? [
+          {
+            id: 'root-causes',
+            label: 'Root Causes',
+            shortLabel: 'Root Causes',
+            icon: Network,
+            badge: 'AI',
+          },
+        ]
+      : []),
     ...(isAdmin
       ? [
           {

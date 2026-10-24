@@ -32,6 +32,7 @@ import {
 import { DEMO_USERS } from './services/mockData';
 import {
   Ticket,
+  TicketCategory,
   UserProfile,
   TicketStatus,
   TicketPriority,
@@ -42,6 +43,9 @@ import {
 import { dataStore } from './services/dataStore';
 import { firestoreService } from './services/firestoreService';
 import { isDemoMode } from './services/firebase';
+import { RootCauseView } from './features/ai/components/RootCauseView';
+import { RootCauseCluster } from './features/ai/types';
+import { AI_FEATURES } from './features/ai/config';
 import {
   Plus,
   Search,
@@ -326,6 +330,72 @@ export const App: React.FC = () => {
     setSelectedTicket(updatedTicket);
   };
 
+  // AI Feature B: Create master maintenance task from Root Cause Cluster
+  const handleCreateMaintenanceTask = (cluster: RootCauseCluster) => {
+    const parentTicketId = `ticket-${Date.now()}`;
+    const parentTicketNumber = `TKT-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newParentTicket: Ticket = {
+      id: parentTicketId,
+      ticketNumber: parentTicketNumber,
+      title: `[Root Cause Fix] ${cluster.title}`,
+      originalComplaint: `Master maintenance task generated for Root Cause Cluster "${cluster.title}".`,
+      summary: cluster.recommended_permanent_fix,
+      category: (cluster.category as TicketCategory) || 'Maintenance',
+      communityId: 'comm-maint',
+      location: cluster.affected_locations.join(', ') || 'Campus Infrastructure',
+      isSharedLocation: true,
+      isSensitive: false,
+      reporterName: 'AI Root-Cause Diagnostics',
+      reporterUid: currentUser.uid,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'In Progress',
+      priority: cluster.severity === 'High' ? 'High' : 'Medium',
+      affectedCount: cluster.related_ticket_ids.length || 1,
+      endorsedUserIds: [currentUser.uid],
+      assignedStaffName: 'Chief Campus Engineer',
+      assignedToStaffUid: 'staff-chief',
+      reopenCount: 0,
+      rootCauseId: cluster.id,
+      demo: true,
+    };
+
+    // Add parent ticket to store
+    dataStore.saveTicket(newParentTicket);
+    dataStore.addHistoryEvent({
+      id: `hist-${Date.now()}-root`,
+      ticketId: parentTicketId,
+      eventType: 'INVESTIGATION_RUN',
+      actorUid: 'ai-system',
+      actorName: 'AI',
+      description: `Parent maintenance task generated for Root Cause Cluster "${cluster.title}".`,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Tag all linked tickets
+    cluster.related_ticket_ids.forEach((tId: string) => {
+      const match = tickets.find((t) => t.id === tId || t.ticketNumber === tId);
+      if (match) {
+        const updated = { ...match, rootCauseId: cluster.id, updatedAt: new Date().toISOString() };
+        dataStore.saveTicket(updated);
+        dataStore.addHistoryEvent({
+          id: `hist-${Date.now()}-${tId}`,
+          ticketId: match.id,
+          eventType: 'STATUS_CHANGED',
+          actorUid: 'ai-system',
+          actorName: 'AI',
+          description: `Correlated & tagged to Root Cause Cluster: ${cluster.title}`,
+          previousValue: match.rootCauseId || 'none',
+          newValue: cluster.id,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+
+    refreshData();
+    showToast(`Master Maintenance Task ${parentTicketNumber} created with ${cluster.related_ticket_ids.length} tickets tagged.`, 'success');
+  };
+
   // Comments
   const handleAddComment = (
     ticketId: string,
@@ -542,6 +612,7 @@ export const App: React.FC = () => {
                 onAssignStaff={(id, sUid, sName) =>
                   handleAssignStaff(id, sUid, sName)
                 }
+                onNavigateTab={(tab) => setActiveTab(tab)}
               />
             )
           )}
@@ -805,12 +876,28 @@ export const App: React.FC = () => {
               onAssignStaff={(id, sUid, sName) =>
                 handleAssignStaff(id, sUid, sName)
               }
+              onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
 
           {/* Tab 8: Admin Governance */}
           {activeTab === 'admin-management' && (
             <AdminGovernanceView currentUser={currentUser} />
+          )}
+
+          {/* Tab 9: AI Root Causes */}
+          {activeTab === 'root-causes' && AI_FEATURES.rootCause && (
+            currentUser.role !== 'Student' ? (
+              <RootCauseView
+                tickets={tickets}
+                onOpenTicket={(t) => setSelectedTicket(t)}
+                onCreateMaintenanceTask={handleCreateMaintenanceTask}
+              />
+            ) : (
+              <div className="p-8 text-center bg-white rounded-3xl border border-mocha-200">
+                <p className="text-xs text-mocha-600 font-bold">Access restricted to Campus Administration and Management.</p>
+              </div>
+            )
           )}
         </main>
       </div>
