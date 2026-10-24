@@ -11,6 +11,7 @@ import {
 import { UserProfile, NotificationItem } from '../types';
 import { DEMO_USERS } from '../services/mockData';
 import { isDemoMode } from '../services/firebase';
+import { useTranslation } from '../i18n';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -35,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
+  const { language, setLanguage } = useTranslation();
 
   const roleMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
@@ -105,6 +107,32 @@ export const Header: React.FC<HeaderProps> = ({
             <RotateCcw className="w-3.5 h-3.5 text-emerald-700 group-hover:rotate-180 transition-transform duration-500" />
             <span>Sync Cloud DB</span>
           </button>
+
+          {/* Language Toggle Pill (EN / हिं) */}
+          <div className="flex items-center bg-mocha-100/90 p-1 rounded-xl border border-mocha-200/90 text-xs font-bold font-mono">
+            <button
+              onClick={() => setLanguage('en')}
+              title="English"
+              className={`px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer ${
+                language === 'en'
+                  ? 'bg-white text-gray-900 shadow-2xs font-extrabold'
+                  : 'text-mocha-600 hover:text-gray-900'
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLanguage('hi')}
+              title="हिन्दी (Hindi)"
+              className={`px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer ${
+                language === 'hi'
+                  ? 'bg-white text-gray-900 shadow-2xs font-extrabold'
+                  : 'text-mocha-600 hover:text-gray-900'
+              }`}
+            >
+              हिं
+            </button>
+          </div>
 
           {/* Notifications Dropdown with Sonner-style design */}
           <div className="relative" ref={notifMenuRef}>

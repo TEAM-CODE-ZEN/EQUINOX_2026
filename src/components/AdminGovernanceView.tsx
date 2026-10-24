@@ -40,6 +40,7 @@ import {
 } from '../services/firebase';
 import { firestoreService } from '../services/firestoreService';
 import { dataStore } from '../services/dataStore';
+import { generateAiDemoTickets } from '../features/ai/demoData';
 
 interface AdminGovernanceViewProps {
   currentUser: UserProfile;
@@ -125,6 +126,37 @@ export const AdminGovernanceView: React.FC<AdminGovernanceViewProps> = ({
     setTimeout(() => {
       window.location.reload();
     }, 1200);
+  };
+
+  // AI Demonstration Data Loader & Cleaner (Feature Suite)
+  const [demoTicketCount, setDemoTicketCount] = useState<number>(() => {
+    return dataStore.getTickets().filter((t) => t.demo).length;
+  });
+
+  const handleLoadAiDemoData = () => {
+    const demoTickets = generateAiDemoTickets();
+    demoTickets.forEach((t) => {
+      dataStore.saveTicket(t);
+    });
+    localStorage.removeItem('campusaccord_root_causes_v1');
+    const updatedCount = dataStore.getTickets().filter((t) => t.demo).length;
+    setDemoTicketCount(updatedCount);
+    setConfigNotice(`Successfully loaded ${demoTickets.length} AI Demo Tickets (Electrical cluster, Verification & Reopened). Refreshing view...`);
+    setTimeout(() => {
+      window.location.reload();
+    }, 900);
+  };
+
+  const handleClearAiDemoData = () => {
+    const all = dataStore.getTickets();
+    const cleaned = all.filter((t) => !t.demo);
+    localStorage.setItem('campusaccord_tickets', JSON.stringify(cleaned));
+    localStorage.removeItem('campusaccord_root_causes_v1');
+    setDemoTicketCount(0);
+    setConfigNotice('All AI demo tickets removed. Clean production database preserved.');
+    setTimeout(() => {
+      window.location.reload();
+    }, 900);
   };
 
   const handleTestFirestore = async () => {
@@ -539,6 +571,46 @@ Content-Type: application/json
                   {isFirebaseLive() ? 'Cloud Sync Active' : 'Offline Safe'}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Section 0: AI Features Demonstration Fixture Data (Additive Loader & Cleaner) */}
+          <div className="bg-gradient-to-r from-purple-50 via-indigo-50 to-emerald-50 border border-purple-200/80 rounded-3xl p-6 sm:p-7 shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="space-y-1.5 max-w-xl">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold font-mono">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-700" />
+                  <span>AI Evaluation Suite</span>
+                </span>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-700">
+                  {demoTicketCount} demo tickets in database
+                </span>
+              </div>
+              <h3 className="text-base font-extrabold text-gray-900 tracking-tight">
+                Load AI Scenario Test Fixtures
+              </h3>
+              <p className="text-xs text-mocha-700 leading-relaxed font-medium">
+                Additively seeds 6 electrical pattern tickets in Block B (triggers Root-Cause detection & Investigator similarity), 2 multimodal verification cases (with Before/After photographic evidence), and 1 student-reopened ticket.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 self-start md:self-center flex-shrink-0">
+              <button
+                onClick={handleLoadAiDemoData}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#16A34A] hover:bg-[#15803D] text-white text-xs font-extrabold rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Load AI Demo Data</span>
+              </button>
+              {demoTicketCount > 0 && (
+                <button
+                  onClick={handleClearAiDemoData}
+                  className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Clear Demo Data</span>
+                </button>
+              )}
             </div>
           </div>
 
