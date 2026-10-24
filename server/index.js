@@ -100,7 +100,10 @@ Respond strictly with valid JSON conforming to this schema:
       },
     });
 
-    const text = response.text();
+    const text = response.text;
+    if (!text) {
+      throw new Error('Empty response received from Gemini');
+    }
     const result = JSON.parse(text);
     return res.json(result);
   } catch (error) {
@@ -110,6 +113,8 @@ Respond strictly with valid JSON conforming to this schema:
       fallbackAvailable: true,
     });
   }
+});
+
 // AI 7-Day & 30-Day History Status Analysis
 app.post('/api/analyze-period-history', async (req, res) => {
   const { timeRange, ticketsSummary, tickets } = req.body;
@@ -184,7 +189,10 @@ Respond strictly with valid JSON conforming to this schema:
       },
     });
 
-    const text = response.text();
+    const text = response.text;
+    if (!text) {
+      throw new Error('Empty response received from Gemini');
+    }
     const result = JSON.parse(text);
     return res.json(result);
   } catch (error) {

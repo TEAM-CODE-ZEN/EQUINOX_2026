@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   ArrowUpRight,
   Clock,
@@ -7,21 +7,14 @@ import {
   AlertTriangle,
   MapPin,
   Building2,
-  Wrench,
   Utensils,
-  Shield,
-  Wifi,
   Search,
-  UserCheck,
   Sparkles,
-  ChevronRight,
   X,
   Flame,
   Calendar,
   Layers,
-  ArrowRight,
   Activity,
-  Award,
   Database,
   Cloud,
   CheckSquare,
@@ -76,7 +69,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   const [firebaseSyncNotice, setFirebaseSyncNotice] = useState<string | null>(null);
 
   // Trigger AI analysis when timeRange or tickets changes
-  const runAiPeriodAnalysis = async (range: TimeRange = timeRange) => {
+  const runAiPeriodAnalysis = useCallback(async (range: TimeRange = timeRange) => {
     setIsAiLoading(true);
     try {
       const report = await aiService.generatePeriodHistoryStatus(range, tickets);
@@ -86,11 +79,11 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     } finally {
       setIsAiLoading(false);
     }
-  };
+  }, [tickets, timeRange]);
 
   useEffect(() => {
-    runAiPeriodAnalysis(timeRange);
-  }, [timeRange, tickets.length]);
+    void runAiPeriodAnalysis(timeRange);
+  }, [timeRange, tickets.length, runAiPeriodAnalysis]);
 
   // Sync all data to Cloud Firestore
   const handleSyncToFirebase = async () => {
@@ -109,19 +102,20 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     }
   };
 
+  const [currentTimestamp] = useState(() => Date.now());
+
   // 1. Filter tickets by selected timeframe
   const periodTickets = useMemo(() => {
-    const now = Date.now();
     if (timeRange === '7d') {
-      const cutOff = now - 7 * 24 * 3600 * 1000;
+      const cutOff = currentTimestamp - 7 * 24 * 3600 * 1000;
       return tickets.filter((t) => new Date(t.createdAt).getTime() >= cutOff);
     }
     if (timeRange === '30d') {
-      const cutOff = now - 30 * 24 * 3600 * 1000;
+      const cutOff = currentTimestamp - 30 * 24 * 3600 * 1000;
       return tickets.filter((t) => new Date(t.createdAt).getTime() >= cutOff);
     }
     return tickets;
-  }, [tickets, timeRange]);
+  }, [tickets, timeRange, currentTimestamp]);
 
   // 2. Compute Improvement & Operational Metrics
   const totalInPeriod = periodTickets.length;
@@ -130,7 +124,6 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   const unassignedInPeriod = periodTickets.filter(
     (t) => !t.assignedToStaffUid && t.status !== 'Resolved'
   ).length;
-  const inProgressInPeriod = periodTickets.filter((t) => t.status === 'In Progress').length;
   const criticalHighInPeriod = periodTickets.filter(
     (t) => (t.priority === 'Critical' || t.priority === 'High') && t.status !== 'Resolved'
   ).length;

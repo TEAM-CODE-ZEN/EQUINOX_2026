@@ -14,7 +14,10 @@ import {
   INITIAL_DEMO_TICKETS,
   INITIAL_MEMBERSHIPS,
   INITIAL_NOTIFICATIONS,
+  INITIAL_COMMENTS,
+  INITIAL_HISTORY,
 } from './mockData';
+import { getStoredSession, sessionToUserProfile } from '../lib/auth';
 
 const STORAGE_KEYS = {
   CURRENT_USER: 'campusaccord_current_user',
@@ -33,7 +36,7 @@ export const isProductionClean = (): boolean => {
     const val = localStorage.getItem(PRODUCTION_CLEAN_KEY);
     if (val !== null) return val === 'true';
   }
-  return true; // Default to true for clean production database
+  return false; // Default to presentation mode with rich demo data
 };
 
 export const setProductionClean = (clean: boolean): void => {
@@ -41,77 +44,6 @@ export const setProductionClean = (clean: boolean): void => {
     localStorage.setItem(PRODUCTION_CLEAN_KEY, String(clean));
   }
 };
-
-// Initial comments for demo tickets
-const INITIAL_COMMENTS: TicketComment[] = [
-  {
-    id: 'cmt-1',
-    ticketId: 'tkt-1041',
-    authorUid: 'user-staff-maint-1',
-    authorName: 'Rajesh Kumar',
-    authorRole: 'Campus Staff',
-    authorDesignation: 'Maintenance Worker',
-    content: 'Inspected the cooler unit at 02:30 PM. The internal condenser fan is seized and the overflow drain hose is cracked. Sourcing replacement pipe from central store.',
-    isInternal: false,
-    createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: 'cmt-2',
-    ticketId: 'tkt-1041',
-    authorUid: 'user-warden-1',
-    authorName: 'Dr. Radhika Iyer',
-    authorRole: 'Campus Staff',
-    authorDesignation: 'Warden',
-    content: 'Internal Note: Spoke with plumber supervisor to expedite replacement before evening study hours.',
-    isInternal: true,
-    createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: 'cmt-3',
-    ticketId: 'tkt-1042',
-    authorUid: 'user-warden-1',
-    authorName: 'Dr. Radhika Iyer',
-    authorRole: 'Campus Staff',
-    authorDesignation: 'Warden',
-    content: 'Issued warning note to catering contractor. Surprise inspection scheduled for today dinner service.',
-    isInternal: false,
-    createdAt: new Date(Date.now() - 11 * 3600 * 1000).toISOString(),
-  },
-];
-
-const INITIAL_HISTORY: TicketHistoryEvent[] = [
-  {
-    id: 'hist-1',
-    ticketId: 'tkt-1041',
-    eventType: 'CREATED',
-    actorUid: 'user-student-2',
-    actorName: 'Karan Mehra',
-    description: 'Ticket created with priority High',
-    timestamp: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: 'hist-2',
-    ticketId: 'tkt-1041',
-    eventType: 'ASSIGNED',
-    actorUid: 'user-admin-1',
-    actorName: 'System Admin',
-    description: 'Assigned to Rajesh Kumar (Maintenance Worker)',
-    previousValue: 'Unassigned',
-    newValue: 'Rajesh Kumar',
-    timestamp: new Date(Date.now() - 20 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: 'hist-3',
-    ticketId: 'tkt-1041',
-    eventType: 'STATUS_CHANGED',
-    actorUid: 'user-staff-maint-1',
-    actorName: 'Rajesh Kumar',
-    description: 'Status changed from Assigned to In Progress',
-    previousValue: 'Assigned',
-    newValue: 'In Progress',
-    timestamp: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-  },
-];
 
 class DataStoreService {
   private getStorage<T>(key: string, defaultValue: T): T {
@@ -134,6 +66,10 @@ class DataStoreService {
 
   // Current logged in user
   getCurrentUser(): UserProfile {
+    const session = getStoredSession();
+    if (session) {
+      return sessionToUserProfile(session);
+    }
     const user = this.getStorage<UserProfile | null>(STORAGE_KEYS.CURRENT_USER, null);
     if (user) return user;
     // Default to Aarav Sharma (Student) for instant demo
@@ -166,7 +102,12 @@ class DataStoreService {
       return realOnly;
     }
 
-    return stored || INITIAL_DEMO_TICKETS;
+    if (!stored || stored.length === 0) {
+      this.setStorage(STORAGE_KEYS.TICKETS, INITIAL_DEMO_TICKETS);
+      return INITIAL_DEMO_TICKETS;
+    }
+
+    return stored;
   }
 
   setTickets(tickets: Ticket[]): void {
@@ -502,14 +443,19 @@ class DataStoreService {
     this.setStorage(STORAGE_KEYS.NOTIFICATIONS, all);
   }
 
+  seedPresentationData(): void {
+    setProductionClean(false);
+    this.setStorage(STORAGE_KEYS.TICKETS, INITIAL_DEMO_TICKETS);
+    this.setStorage(STORAGE_KEYS.COMMENTS, INITIAL_COMMENTS);
+    this.setStorage(STORAGE_KEYS.HISTORY, INITIAL_HISTORY);
+    this.setStorage(STORAGE_KEYS.MEMBERSHIPS, INITIAL_MEMBERSHIPS);
+    this.setStorage(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
+    this.setStorage(STORAGE_KEYS.COMMUNITIES, DEMO_COMMUNITIES);
+  }
+
   // Reset Demo Database
   resetDemoData(): void {
-    localStorage.removeItem(STORAGE_KEYS.TICKETS);
-    localStorage.removeItem(STORAGE_KEYS.COMMENTS);
-    localStorage.removeItem(STORAGE_KEYS.HISTORY);
-    localStorage.removeItem(STORAGE_KEYS.COMMUNITIES);
-    localStorage.removeItem(STORAGE_KEYS.MEMBERSHIPS);
-    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
+    this.seedPresentationData();
   }
 }
 

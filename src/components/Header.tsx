@@ -7,10 +7,13 @@ import {
   CheckCircle2,
   ExternalLink,
   Layers,
+  LogOut,
 } from 'lucide-react';
 import { UserProfile, NotificationItem } from '../types';
 import { DEMO_USERS } from '../services/mockData';
 import { isDemoMode } from '../services/firebase';
+
+import { CampusAccordEmblem } from './CampusAccordLogo';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -21,6 +24,7 @@ interface HeaderProps {
   onOpenTicket: (ticketId: string) => void;
   onNavigateTab: (tab: string) => void;
   onResetDemo: () => void;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTicket,
   onNavigateTab,
   onResetDemo,
+  onLogout,
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
@@ -58,37 +63,43 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-[#FAF6EE]/90 backdrop-blur-xl border-b border-mocha-200/80 shadow-[0_1px_3px_0_rgba(61,6,16,0.03)] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand & Tagline with Apple-grade polish */}
+        {/* Brand & Tagline with light green & white theme */}
         <div className="flex items-center gap-3.5">
           <div
             className="relative group cursor-pointer"
             onClick={() => onNavigateTab(currentUser.role === 'Student' ? 'overview' : 'staff-dashboard')}
+            title="CampusAccord Home"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-burgundy-800 flex items-center justify-center text-latte-50 shadow-[0_4px_12px_rgba(22,163,74,0.3)] ring-1 ring-burgundy-700/40 transition-transform group-hover:scale-105 active:scale-95 duration-200">
-              <ShieldCheck className="w-5 h-5 text-mocha-300 group-hover:text-latte-100 transition-colors" />
+            <div className="w-10 h-10 sm:w-10.5 sm:h-10.5 rounded-full bg-white border border-emerald-200/90 shadow-[0_4px_14px_rgba(16,185,129,0.18)] ring-1 ring-emerald-500/20 flex items-center justify-center transition-all duration-200 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(16,185,129,0.25)] group-hover:border-emerald-300 active:scale-95 overflow-hidden">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-50/80 via-white to-emerald-100/50 pointer-events-none" />
+              <div className="relative z-10 flex items-center justify-center">
+                <CampusAccordEmblem size={38} />
+              </div>
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-burgundy-600 border-2 border-[#FAF6EE] rounded-full"></span>
+            <span
+              className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-xs ring-1 ring-emerald-400/30"
+              title="CampusAccord Active"
+            />
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-[17px] text-burgundy-950 tracking-tight font-sans">
-                Campus<span className="text-burgundy-700">Accord</span>
+              <span
+                onClick={() => onNavigateTab(currentUser.role === 'Student' ? 'overview' : 'staff-dashboard')}
+                className="font-extrabold text-[17px] sm:text-[18px] text-emerald-950 tracking-tight font-sans cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                Campus<span className="text-emerald-600">Accord</span>
               </span>
               <button
                 onClick={() => onNavigateTab(currentUser.role === 'Admin' ? 'admin-management' : 'staff-dashboard')}
                 title="Click to view Cloud APIs, Firebase Firestore & AI Engine status"
-                className={`hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border shadow-sm transition-all cursor-pointer active:scale-95 ${
-                  isDemoMode
-                    ? 'bg-burgundy-50 hover:bg-burgundy-100 text-burgundy-900 border-burgundy-200/80'
-                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200/80'
-                }`}
+                className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border shadow-xs transition-all cursor-pointer active:scale-95 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200/90"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? 'bg-burgundy-600' : 'bg-emerald-600 animate-pulse'}`}></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
                 <span>{isDemoMode ? 'Sandbox Resilient' : 'Live Cloud & AI'}</span>
               </button>
             </div>
-            <p className="hidden md:block text-[11px] text-mocha-700 font-medium tracking-normal -mt-0.5">
+            <p className="hidden md:block text-[11px] text-emerald-900/70 font-medium tracking-normal -mt-0.5">
               Every concern heard. Every action tracked.
             </p>
           </div>
@@ -292,6 +303,21 @@ export const Header: React.FC<HeaderProps> = ({
                     );
                   })}
                 </div>
+
+                {onLogout && (
+                  <div className="pt-2 border-t border-mocha-100 mt-1.5 px-1">
+                    <button
+                      onClick={() => {
+                        setShowRoleMenu(false);
+                        onLogout();
+                      }}
+                      className="w-full flex items-center gap-2 p-2 rounded-xl text-left text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

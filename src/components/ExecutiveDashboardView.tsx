@@ -1,27 +1,22 @@
 import React, { useState } from 'react';
 import {
-  Plus,
-  ArrowUpRight,
   Clock,
   CheckCircle2,
   Search,
   Sparkles,
-  MapPin,
-  ThumbsUp,
   ChevronRight,
   X,
-  AlertCircle,
 } from 'lucide-react';
 import { Ticket, UserProfile } from '../types';
-import { formatRelativeTime, getTicketPriorityBorderClass } from '../utils/formatters';
+import { getTicketPriorityBorderClass } from '../utils/formatters';
 
 interface ExecutiveDashboardViewProps {
   tickets: Ticket[];
   currentUser: UserProfile;
   onReportConcern?: () => void;
   onSelectTicket: (ticket: Ticket) => void;
-  onNavigateTab: (tab: string) => void;
-  openIssuesCount: number;
+  onNavigateTab?: (tab: string) => void;
+  openIssuesCount?: number;
   onOpenSettings?: () => void;
   onToggleEndorse?: (ticketId: string, e?: React.MouseEvent) => void;
 }
@@ -31,10 +26,10 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
   currentUser,
   onReportConcern,
   onSelectTicket,
-  onNavigateTab,
-  openIssuesCount,
-  onOpenSettings,
-  onToggleEndorse,
+  onNavigateTab: _onNavigateTab,
+  openIssuesCount: _openIssuesCount,
+  onOpenSettings: _onOpenSettings,
+  onToggleEndorse: _onToggleEndorse,
 }) => {
   // Filter states
   const [filterType, setFilterType] = useState<'active' | 'my-issues' | 'solved'>('active');
@@ -63,72 +58,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardViewProps> = ({
       );
     });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'In Progress':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            Working on it
-          </span>
-        );
-      case 'Assigned':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            Staff Assigned
-          </span>
-        );
-      case 'Resolved':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-900 border border-green-200">
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-700" />
-            Fixed
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-200">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            Reported
-          </span>
-        );
-    }
-  };
 
-  const getPriorityBadge = (t: Ticket) => {
-    const isHigh =
-      t.affectedCount >= 5 ||
-      t.reopenCount > 0 ||
-      t.priority === 'Critical' ||
-      t.priority === 'High';
-
-    if (isHigh) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
-          <span className="w-2 h-2 rounded-full bg-red-600"></span>
-          High Priority
-        </span>
-      );
-    }
-
-    const isModerate = t.affectedCount >= 2 || t.priority === 'Medium';
-    if (isModerate) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-          Moderate
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-        <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-        Normal
-      </span>
-    );
-  };
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300 max-w-5xl mx-auto">

@@ -29,6 +29,14 @@ import {
 import {
   ExecutiveDashboardView,
 } from './components/ExecutiveDashboardView';
+import { LoginPage } from './components/LoginPage';
+import {
+  getStoredSession,
+  saveSession,
+  clearSession,
+  sessionToUserProfile,
+  AppSession,
+} from './lib/auth';
 import { DEMO_USERS } from './services/mockData';
 import {
   Ticket,
@@ -67,10 +75,23 @@ interface Toast {
 }
 
 export const App: React.FC = () => {
+  // Session State & Minimal Route Gate
+  const [session, setSessionState] = useState<AppSession | null>(() => getStoredSession());
+  const [isLoginRoute, setIsLoginRoute] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname === '/login') return true;
+    }
+    return !getStoredSession();
+  });
+
   // State
-  const [currentUser, setCurrentUser] = useState<UserProfile>(() =>
-    dataStore.getCurrentUser()
-  );
+  const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
+    const activeSession = getStoredSession();
+    if (activeSession) {
+      return sessionToUserProfile(activeSession);
+    }
+    return dataStore.getCurrentUser();
+  });
   const [activeTab, setActiveTab] = useState<string>(() => {
     const user = dataStore.getCurrentUser();
     return user.role === 'Student' ? 'overview' : 'staff-dashboard';
@@ -139,10 +160,16 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showRaiseModal, selectedTicket]);
 
+  // Refresh data from store
+  const refreshData = () => {
+    setTickets([...dataStore.getTickets()]);
+    setCommunities([...dataStore.getCommunities()]);
+    setMemberships([...dataStore.getMemberships()]);
+    setNotifications([...dataStore.getNotifications(currentUser.uid)]);
+  };
+
   // Real-time Firestore sync when live Firebase is configured
   useEffect(() => {
-    // Purge lingering demo tickets in production mode
-    dataStore.purgeDemoTickets();
     refreshData();
 
     if (!isDemoMode) {
@@ -158,17 +185,86 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Redirect admin/staff away from student-only help-safety tab
+  // Sync URL with session and support back/forward navigation
   useEffect(() => {
-    if (currentUser.role !== 'Student' && activeTab === 'help-safety') {
-      setActiveTab('staff-dashboard');
+    const syncRouteWithSession = () => {
+      const activeSession = getStoredSession();
+      const path = window.location.pathname;
+      if (!activeSession) {
+        setIsLoginRoute(true);
+        if (path !== '/login') {
+          window.history.replaceState(null, '', '/login');
+        }
+      } else {
+        if (path === '/login') {
+          window.history.replaceState(null, '', '/');
+        }
+        setIsLoginRoute(false);
+      }
+    };
+
+    syncRouteWithSession();
+    window.addEventListener('popstate', syncRouteWithSession);
+    return () => window.removeEventListener('popstate', syncRouteWithSession);
+  }, []);
+
+  // Route guard: prevent students from opening staff/admin tabs and vice-versa
+  useEffect(() => {
+    if (!session) return;
+    if (currentUser.role === 'Student') {
+      if (['staff-dashboard', 'feed', 'communities', 'admin-management'].includes(activeTab)) {
+        setActiveTab('overview');
+      }
+    } else {
+      if (['help-safety', 'overview', 'my-issues'].includes(activeTab)) {
+        setActiveTab('staff-dashboard');
+      }
+      if (currentUser.role !== 'Admin' && activeTab === 'admin-management') {
+        setActiveTab('staff-dashboard');
+      }
     }
-  }, [currentUser.role, activeTab]);
+  }, [currentUser.role, activeTab, session]);
+
+  const handleLoginSuccess = (newSession: AppSession) => {
+    setSessionState(newSession);
+    const userProfile = sessionToUserProfile(newSession);
+    setCurrentUser(userProfile);
+    dataStore.setCurrentUser(userProfile);
+    setIsLoginRoute(false);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', '/');
+    }
+    const targetTab = userProfile.role === 'Student' ? 'overview' : 'staff-dashboard';
+    setActiveTab(targetTab);
+    refreshData();
+    showToast(`Signed in as ${newSession.name} (${userProfile.role})`, 'success');
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    setSessionState(null);
+    setIsLoginRoute(true);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', '/login');
+    }
+    showToast('Signed out successfully', 'info');
+  };
 
   // Sync state whenever currentUser changes
   const handleSelectUser = (user: UserProfile) => {
     setCurrentUser(user);
     dataStore.setCurrentUser(user);
+    const sessionRole = user.role === 'Student' ? 'student' : user.role === 'Admin' ? 'admin' : 'staff';
+    const newSession: AppSession = {
+      role: sessionRole,
+      name: user.name,
+      id: user.uid,
+      designation: user.designation,
+      hostel: user.roomNumber,
+      loggedInAt: new Date().toISOString(),
+    };
+    saveSession(newSession);
+    setSessionState(newSession);
     setNotifications(dataStore.getNotifications(user.uid));
     if (user.role === 'Student') {
       setActiveTab('overview');
@@ -176,14 +272,6 @@ export const App: React.FC = () => {
       setActiveTab('staff-dashboard');
     }
     showToast(`Switched active profile to ${user.name} (${user.role})`, 'info');
-  };
-
-  // Refresh data from store
-  const refreshData = () => {
-    setTickets([...dataStore.getTickets()]);
-    setCommunities([...dataStore.getCommunities()]);
-    setMemberships([...dataStore.getMemberships()]);
-    setNotifications([...dataStore.getNotifications(currentUser.uid)]);
   };
 
   // Production DB Sync
@@ -421,6 +509,11 @@ export const App: React.FC = () => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+  // Minimal Session Gate: Show Login Page if no session or currently on /login route
+  if (isLoginRoute || !session) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF6EE] text-slate-800 flex flex-col font-sans pb-20 md:pb-6 selection:bg-burgundy-900/20 selection:text-burgundy-950">
       {/* Emil Kowalski / Sonner-Style Stacked Toast System */}
@@ -459,6 +552,7 @@ export const App: React.FC = () => {
         }}
         onNavigateTab={(tab) => setActiveTab(tab)}
         onResetDemo={handleSyncCloudDb}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
@@ -474,6 +568,7 @@ export const App: React.FC = () => {
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
           onRaiseIssue={() => setShowRaiseModal(true)}
+          onLogout={handleLogout}
         />
 
         {/* Dynamic Main Content Area */}

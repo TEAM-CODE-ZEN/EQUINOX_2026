@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Sparkles,
   Layers,
+  LogOut,
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -20,24 +21,26 @@ interface SidebarProps {
   activeTab: string;
   onSelectTab: (tab: string) => void;
   currentUser: UserProfile;
-  unreadCount: number;
-  openIssuesCount: number;
+  unreadCount?: number;
+  openIssuesCount?: number;
   myIssuesCount: number;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onRaiseIssue?: () => void;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onSelectTab,
   currentUser,
-  unreadCount,
-  openIssuesCount,
+  unreadCount = 0,
+  openIssuesCount = 0,
   myIssuesCount,
   isCollapsed = false,
   onToggleCollapse,
   onRaiseIssue,
+  onLogout,
 }) => {
   const isStaffOrAdmin =
     currentUser.role === 'Campus Staff' || currentUser.role === 'Admin';
@@ -390,20 +393,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </div>
 
-              {/* Collapse/Expand Toggle Button */}
-              {onToggleCollapse && (
-                <button
-                  onClick={onToggleCollapse}
-                  title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                  className="w-8 h-8 rounded-xl bg-burgundy-950 hover:bg-burgundy-900 text-mocha-300 hover:text-white flex items-center justify-center transition-all border border-burgundy-800/60 active:scale-95"
-                >
-                  {isCollapsed ? (
-                    <ChevronRight className="w-4 h-4" />
-                  ) : (
-                    <ChevronLeft className="w-4 h-4" />
-                  )}
-                </button>
-              )}
+              <div className="flex items-center gap-1.5">
+                {/* Sign Out Button */}
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    title="Sign out"
+                    className="w-8 h-8 rounded-xl bg-burgundy-950 hover:bg-red-950/80 text-mocha-300 hover:text-red-300 flex items-center justify-center transition-all border border-burgundy-800/60 active:scale-95"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
+                {/* Collapse/Expand Toggle Button */}
+                {onToggleCollapse && (
+                  <button
+                    onClick={onToggleCollapse}
+                    title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    className="w-8 h-8 rounded-xl bg-burgundy-950 hover:bg-burgundy-900 text-mocha-300 hover:text-white flex items-center justify-center transition-all border border-burgundy-800/60 active:scale-95"
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="w-4 h-4" />
+                    ) : (
+                      <ChevronLeft className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -444,6 +460,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Plus className="w-4 h-4 stroke-[2.5]" />
             </div>
             <span>Raise</span>
+          </button>
+        )}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            title="Sign out"
+            className="flex flex-col items-center py-1 px-2 rounded-xl text-[10px] font-bold text-mocha-400 hover:text-red-300 transition-all active:scale-95"
+          >
+            <div className="p-1 rounded-lg mb-0.5 bg-burgundy-950 text-mocha-300 hover:text-red-300">
+              <LogOut className="w-4 h-4" />
+            </div>
+            <span>Exit</span>
           </button>
         )}
       </nav>

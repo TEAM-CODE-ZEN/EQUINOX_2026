@@ -1,0 +1,7 @@
+{
+  "name": "CampusAccord",
+  "description": "AI-powered campus issue management, duplicate detection, and community coordination platform.",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
