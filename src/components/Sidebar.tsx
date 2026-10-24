@@ -88,13 +88,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           shortLabel: 'Community',
           icon: Users,
         },
-        {
-          id: 'help-safety',
-          label: 'Help & 24/7 Helplines',
-          shortLabel: 'Helplines',
-          icon: LifeBuoy,
-          highlight: true,
-        },
       ];
 
   const adminStaffItems = [

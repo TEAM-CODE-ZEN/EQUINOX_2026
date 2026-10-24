@@ -20,6 +20,7 @@ import {
   Save,
   CheckCircle,
   Zap,
+  Trash2,
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { DEMO_USERS } from '../services/mockData';
@@ -162,6 +163,17 @@ export const AdminGovernanceView: React.FC<AdminGovernanceViewProps> = ({
         },
       });
     }
+  };
+
+  const handlePurgeDemoData = async () => {
+    dataStore.purgeDemoTickets();
+    const firestoreResult = await firestoreService.purgeDemoTicketsFromFirestore();
+    setConfigNotice(
+      `Purged mock demo data! Local store cleared and ${firestoreResult.deleted} demo tickets removed from Cloud Firestore. Pure production database is now active.`
+    );
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   };
 
   return (
@@ -669,6 +681,15 @@ Content-Type: application/json
               >
                 <Server className="w-3.5 h-3.5 text-mocha-600" />
                 <span>{fbTestStatus.testing ? 'Pinging Firestore...' : 'Test Firestore Ping'}</span>
+              </button>
+
+              <button
+                onClick={handlePurgeDemoData}
+                className="px-4 py-2 text-xs font-extrabold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl shadow-subtle transition-all active:scale-95 flex items-center gap-1.5"
+                title="Wipe demo seed tickets from local and Cloud Firestore to run on pure real production data"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                <span>Purge Dummy Data (Pure Production)</span>
               </button>
             </div>
 

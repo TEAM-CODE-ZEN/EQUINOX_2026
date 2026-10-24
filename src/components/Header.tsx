@@ -96,14 +96,14 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Section: Notifications, Reset & Role Switcher */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Quick Demo Reset Button */}
+          {/* Cloud Database Sync & Health Check */}
           <button
             onClick={onResetDemo}
-            title="Reset Demo Data to Initial State"
-            className="group hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-mocha-800 hover:text-burgundy-950 bg-mocha-100/80 hover:bg-mocha-200 rounded-xl transition-all duration-200 border border-mocha-200/90 active:scale-95"
+            title="Sync with Cloud Firestore Database and verify connectivity"
+            className="group hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-900 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-all duration-200 border border-emerald-200 active:scale-95"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-mocha-600 group-hover:rotate-180 transition-transform duration-500" />
-            <span>Reset Demo</span>
+            <RotateCcw className="w-3.5 h-3.5 text-emerald-700 group-hover:rotate-180 transition-transform duration-500" />
+            <span>Sync Cloud DB</span>
           </button>
 
           {/* Notifications Dropdown with Sonner-style design */}

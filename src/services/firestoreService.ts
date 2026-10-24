@@ -4,6 +4,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   runTransaction,
   query,
   orderBy,
@@ -30,28 +31,21 @@ class FirestoreService {
   }
 
   // Initialize and seed empty Firestore collection if needed
+  // Real Production Mode: No dummy tickets seeded. Only institutional committees & structures.
   async initFirestoreCollections(): Promise<void> {
     if (!this.isLive()) return;
 
     try {
-      // Check if tickets collection is empty
-      const ticketsSnap = await getDocs(collection(db, 'tickets'));
-      if (ticketsSnap.empty) {
-        console.log('Seeding initial tickets to Firestore...');
-        for (const tkt of INITIAL_DEMO_TICKETS) {
-          await setDoc(doc(db, 'tickets', tkt.id), tkt);
-        }
-      }
+      // NOTE: In production mode, tickets collection remains clean.
+      // Real student tickets are saved as they are submitted through the portal.
 
-      // Check communities
+      // Check communities - ensure official 5-member committees exist in Cloud Firestore
       const commSnap = await getDocs(collection(db, 'communities'));
       if (commSnap.empty) {
         for (const comm of DEMO_COMMUNITIES) {
           await setDoc(doc(db, 'communities', comm.id), comm);
         }
       }
-
-
 
       // Check memberships
       const memSnap = await getDocs(collection(db, 'committeeMemberships'));
@@ -63,6 +57,25 @@ class FirestoreService {
     } catch (err) {
       console.warn('Firestore initial check or permissions notice:', err);
     }
+  }
+
+  // Purge any mock/dummy tickets from Cloud Firestore to keep the production database pure
+  async purgeDemoTicketsFromFirestore(): Promise<{ deleted: number }> {
+    if (!this.isLive()) return { deleted: 0 };
+    let count = 0;
+    try {
+      const demoIds = new Set(INITIAL_DEMO_TICKETS.map((t) => t.id));
+      const ticketsSnap = await getDocs(collection(db, 'tickets'));
+      for (const d of ticketsSnap.docs) {
+        if (demoIds.has(d.id)) {
+          await deleteDoc(doc(db, 'tickets', d.id));
+          count++;
+        }
+      }
+    } catch (err) {
+      console.warn('Notice while purging demo tickets from Firestore:', err);
+    }
+    return { deleted: count };
   }
 
   // Real-time listener for tickets

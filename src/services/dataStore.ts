@@ -26,6 +26,22 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'campusaccord_notifications',
 };
 
+const PRODUCTION_CLEAN_KEY = 'campusaccord_production_clean';
+
+export const isProductionClean = (): boolean => {
+  if (typeof window !== 'undefined') {
+    const val = localStorage.getItem(PRODUCTION_CLEAN_KEY);
+    if (val !== null) return val === 'true';
+  }
+  return true; // Default to true for clean production database
+};
+
+export const setProductionClean = (clean: boolean): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(PRODUCTION_CLEAN_KEY, String(clean));
+  }
+};
+
 // Initial comments for demo tickets
 const INITIAL_COMMENTS: TicketComment[] = [
   {
@@ -136,7 +152,39 @@ class DataStoreService {
 
   // Tickets
   getTickets(): Ticket[] {
-    return this.getStorage<Ticket[]>(STORAGE_KEYS.TICKETS, INITIAL_DEMO_TICKETS);
+    const cleanMode = isProductionClean();
+    const stored = this.getStorage<Ticket[] | null>(STORAGE_KEYS.TICKETS, null);
+
+    if (cleanMode) {
+      if (!stored) return [];
+      // Filter out any mock dummy ticket IDs (tkt-1041 to tkt-1052)
+      const demoIds = new Set(INITIAL_DEMO_TICKETS.map((t) => t.id));
+      const realOnly = stored.filter((t) => !demoIds.has(t.id));
+      if (realOnly.length !== stored.length) {
+        this.setStorage(STORAGE_KEYS.TICKETS, realOnly);
+      }
+      return realOnly;
+    }
+
+    return stored || INITIAL_DEMO_TICKETS;
+  }
+
+  setTickets(tickets: Ticket[]): void {
+    if (isProductionClean()) {
+      const demoIds = new Set(INITIAL_DEMO_TICKETS.map((t) => t.id));
+      const realOnly = tickets.filter((t) => !demoIds.has(t.id));
+      this.setStorage(STORAGE_KEYS.TICKETS, realOnly);
+    } else {
+      this.setStorage(STORAGE_KEYS.TICKETS, tickets);
+    }
+  }
+
+  purgeDemoTickets(): void {
+    const demoIds = new Set(INITIAL_DEMO_TICKETS.map((t) => t.id));
+    const current = this.getStorage<Ticket[]>(STORAGE_KEYS.TICKETS, []);
+    const realOnly = current.filter((t) => !demoIds.has(t.id));
+    this.setStorage(STORAGE_KEYS.TICKETS, realOnly);
+    setProductionClean(true);
   }
 
   getTicketById(id: string): Ticket | undefined {
@@ -294,12 +342,14 @@ class DataStoreService {
 
   // Comments
   getComments(ticketId: string): TicketComment[] {
-    const all = this.getStorage<TicketComment[]>(STORAGE_KEYS.COMMENTS, INITIAL_COMMENTS);
+    const defaultComments = isProductionClean() ? [] : INITIAL_COMMENTS;
+    const all = this.getStorage<TicketComment[]>(STORAGE_KEYS.COMMENTS, defaultComments);
     return all.filter((c) => c.ticketId === ticketId);
   }
 
   addComment(comment: TicketComment): void {
-    const all = this.getStorage<TicketComment[]>(STORAGE_KEYS.COMMENTS, INITIAL_COMMENTS);
+    const defaultComments = isProductionClean() ? [] : INITIAL_COMMENTS;
+    const all = this.getStorage<TicketComment[]>(STORAGE_KEYS.COMMENTS, defaultComments);
     all.push(comment);
     this.setStorage(STORAGE_KEYS.COMMENTS, all);
 
@@ -318,14 +368,16 @@ class DataStoreService {
 
   // History
   getHistory(ticketId: string): TicketHistoryEvent[] {
-    const all = this.getStorage<TicketHistoryEvent[]>(STORAGE_KEYS.HISTORY, INITIAL_HISTORY);
+    const defaultHistory = isProductionClean() ? [] : INITIAL_HISTORY;
+    const all = this.getStorage<TicketHistoryEvent[]>(STORAGE_KEYS.HISTORY, defaultHistory);
     return all
       .filter((h) => h.ticketId === ticketId)
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   }
 
   addHistoryEvent(event: TicketHistoryEvent): void {
-    const all = this.getStorage<TicketHistoryEvent[]>(STORAGE_KEYS.HISTORY, INITIAL_HISTORY);
+    const defaultHistory = isProductionClean() ? [] : INITIAL_HISTORY;
+    const all = this.getStorage<TicketHistoryEvent[]>(STORAGE_KEYS.HISTORY, defaultHistory);
     all.push(event);
     this.setStorage(STORAGE_KEYS.HISTORY, all);
   }

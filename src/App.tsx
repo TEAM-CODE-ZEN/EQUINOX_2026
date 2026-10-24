@@ -141,16 +141,29 @@ export const App: React.FC = () => {
 
   // Real-time Firestore sync when live Firebase is configured
   useEffect(() => {
+    // Purge lingering demo tickets in production mode
+    dataStore.purgeDemoTickets();
+    refreshData();
+
     if (!isDemoMode) {
       firestoreService.initFirestoreCollections();
+      firestoreService.purgeDemoTicketsFromFirestore();
       const unsubscribe = firestoreService.subscribeTickets((liveTickets) => {
-        if (liveTickets && liveTickets.length > 0) {
+        if (liveTickets) {
           setTickets(liveTickets);
+          dataStore.setTickets(liveTickets);
         }
       });
       return () => unsubscribe();
     }
   }, []);
+
+  // Redirect admin/staff away from student-only help-safety tab
+  useEffect(() => {
+    if (currentUser.role !== 'Student' && activeTab === 'help-safety') {
+      setActiveTab('staff-dashboard');
+    }
+  }, [currentUser.role, activeTab]);
 
   // Sync state whenever currentUser changes
   const handleSelectUser = (user: UserProfile) => {
@@ -173,12 +186,20 @@ export const App: React.FC = () => {
     setNotifications([...dataStore.getNotifications(currentUser.uid)]);
   };
 
-  // Reset demo
-  const handleResetDemo = () => {
-    if (confirm('Reset demo data to initial campus state?')) {
-      dataStore.resetDemoData();
+  // Production DB Sync
+  const handleSyncCloudDb = async () => {
+    if (!isDemoMode) {
+      showToast('Pinging Cloud Firestore...', 'info');
+      const test = await firestoreService.testConnection();
+      if (test.success) {
+        showToast(test.message, 'success');
+      } else {
+        showToast(test.message, 'warning');
+      }
+    } else {
+      dataStore.purgeDemoTickets();
       refreshData();
-      showToast('Demo data reset to default seed state.', 'info');
+      showToast('Production database active (clean ticket ledger).', 'info');
     }
   };
 
@@ -437,7 +458,7 @@ export const App: React.FC = () => {
           if (t) setSelectedTicket(t);
         }}
         onNavigateTab={(tab) => setActiveTab(tab)}
-        onResetDemo={handleResetDemo}
+        onResetDemo={handleSyncCloudDb}
       />
 
       {/* Main Container */}
@@ -507,16 +528,39 @@ export const App: React.FC = () => {
 
               {/* Tickets List */}
               <div className="space-y-3">
-                {displayedTickets.map((ticket) => (
-                  <TicketCard
-                    key={ticket.id}
-                    ticket={ticket}
-                    currentUserUid={currentUser.uid}
-                    onSelect={(t) => setSelectedTicket(t)}
-                    onToggleEndorse={(id, e) => handleToggleEndorse(id, e)}
-                    commentCount={dataStore.getComments(ticket.id).length}
-                  />
-                ))}
+                {displayedTickets.length === 0 ? (
+                  <div className="p-12 bg-white rounded-3xl border border-mocha-200/90 text-center space-y-3 shadow-subtle">
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200/60">
+                      <CheckCircle2 className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-base font-extrabold text-burgundy-950">
+                      No Campus Issues Active
+                    </h3>
+                    <p className="text-xs text-mocha-600 max-w-sm mx-auto leading-relaxed">
+                      All campus blocks, facilities, mess halls, and IT networks are currently operating normally without any open complaints.
+                    </p>
+                    {currentUser.role === 'Student' && (
+                      <button
+                        onClick={() => setShowRaiseModal(true)}
+                        className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-[#16A34A] hover:bg-[#15803D] text-white text-xs font-extrabold rounded-xl shadow-sm transition-all active:scale-95"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Report First Incident</span>
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  displayedTickets.map((ticket) => (
+                    <TicketCard
+                      key={ticket.id}
+                      ticket={ticket}
+                      currentUserUid={currentUser.uid}
+                      onSelect={(t) => setSelectedTicket(t)}
+                      onToggleEndorse={(id, e) => handleToggleEndorse(id, e)}
+                      commentCount={dataStore.getComments(ticket.id).length}
+                    />
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -709,8 +753,8 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Tab 6: Help & Safety */}
-          {activeTab === 'help-safety' && <HelpSafetyView />}
+          {/* Tab 6: Help & Safety (Students Only) */}
+          {activeTab === 'help-safety' && currentUser.role === 'Student' && <HelpSafetyView />}
 
           {/* Tab 7: Staff Dashboard */}
           {activeTab === 'staff-dashboard' && (
