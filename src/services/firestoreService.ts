@@ -9,12 +9,14 @@ import {
   orderBy,
   onSnapshot,
 } from 'firebase/firestore';
-import { db, isDemoMode } from './firebase';
+import { db, isFirebaseLive, getFirebaseConnectionInfo } from './firebase';
 import {
   Ticket,
   TicketComment,
   UserProfile,
   TicketStatus,
+  Community,
+  CommitteeMembership,
 } from '../types';
 import {
   DEMO_COMMUNITIES,
@@ -23,8 +25,8 @@ import {
 } from './mockData';
 
 class FirestoreService {
-  private isLive(): boolean {
-    return !isDemoMode;
+  isLive(): boolean {
+    return Boolean(db) && isFirebaseLive();
   }
 
   // Initialize and seed empty Firestore collection if needed
@@ -243,6 +245,90 @@ class FirestoreService {
     }
   }
 
+  // Sync entire dataset to Cloud Firestore (Tickets, Communities & Memberships)
+  async syncAllToFirestore(
+    tickets: Ticket[],
+    communities: Community[],
+    memberships: CommitteeMembership[]
+  ): Promise<{ success: boolean; syncedTickets: number; syncedCommunities: number; message: string }> {
+    if (!this.isLive()) {
+      return {
+        success: false,
+        syncedTickets: 0,
+        syncedCommunities: 0,
+        message: 'Firebase is currently running in local offline-resilient mode. Provide live credentials in Firebase Settings to push to Cloud Firestore.',
+      };
+    }
+
+    try {
+      let tCount = 0;
+      let cCount = 0;
+
+      // 1. Sync all tickets
+      for (const t of tickets) {
+        await setDoc(doc(db, 'tickets', t.id), t, { merge: true });
+        tCount++;
+      }
+
+      // 2. Sync all 5-member communities
+      for (const c of communities) {
+        await setDoc(doc(db, 'communities', c.id), c, { merge: true });
+        cCount++;
+      }
+
+      // 3. Sync memberships
+      for (const m of memberships) {
+        await setDoc(doc(db, 'committeeMemberships', m.id), m, { merge: true });
+      }
+
+      return {
+        success: true,
+        syncedTickets: tCount,
+        syncedCommunities: cCount,
+        message: `Successfully synchronized ${tCount} tickets and ${cCount} official committees to Cloud Firestore!`,
+      };
+    } catch (err: any) {
+      console.error('Failed to sync to Firestore:', err);
+      return {
+        success: false,
+        syncedTickets: 0,
+        syncedCommunities: 0,
+        message: `Firestore sync notice: ${err?.message || 'Network or permissions error'}. Data remains fully safe in local persistence.`,
+      };
+    }
+  }
+
+  // Test Firestore Connection
+  async testConnection(): Promise<{ success: boolean; message: string; projectId: string }> {
+    const info = getFirebaseConnectionInfo();
+    if (!this.isLive()) {
+      return {
+        success: false,
+        message: 'Firebase is in local offline-resilient mode (no live connection).',
+        projectId: info.projectId,
+      };
+    }
+
+    try {
+      // Ping collection
+      await getDocs(collection(db, 'communities'));
+      return {
+        success: true,
+        message: `Connected to Cloud Firestore project [${info.projectId}] with real-time syncing enabled.`,
+        projectId: info.projectId,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: `Firebase project configured [${info.projectId}], but Firestore ping failed: ${err?.message || 'Check Firestore security rules or web API key'}.`,
+        projectId: info.projectId,
+      };
+    }
+  }
+
+  getStatus() {
+    return getFirebaseConnectionInfo();
+  }
 }
 
 export const firestoreService = new FirestoreService();

@@ -4,33 +4,114 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDuqiLAn9vhkdxALmUUPsVdKr8N_EnCkIU',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'campusaccord.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'campusaccord',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'campusaccord.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '11813488329',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:11813488329:web:911a9492e5634b218baf18',
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-WBFEM0ZPEG',
+export interface FirebaseCustomConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId?: string;
+}
+
+const STORAGE_CUSTOM_CONFIG_KEY = 'campusaccord_firebase_custom_config';
+
+// 1. Resolve Firebase Configuration
+export const getEffectiveFirebaseConfig = (): FirebaseCustomConfig => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customStr = localStorage.getItem(STORAGE_CUSTOM_CONFIG_KEY);
+      if (customStr) {
+        const parsed = JSON.parse(customStr);
+        if (parsed && parsed.apiKey && parsed.projectId) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDuqiLAn9vhkdxALmUUPsVdKr8N_EnCkIU',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'campusaccord.firebaseapp.com',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'campusaccord',
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'campusaccord.firebasestorage.app',
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '11813488329',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:11813488329:web:911a9492e5634b218baf18',
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-WBFEM0ZPEG',
+  };
 };
+
+export const saveCustomFirebaseConfig = (cfg: FirebaseCustomConfig): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_CUSTOM_CONFIG_KEY, JSON.stringify(cfg));
+  }
+};
+
+export const clearCustomFirebaseConfig = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_CUSTOM_CONFIG_KEY);
+  }
+};
+
+const activeConfig = getEffectiveFirebaseConfig();
 
 export const isDemoMode =
   import.meta.env.VITE_APP_MODE === 'demo' ||
-  !firebaseConfig.apiKey ||
-  firebaseConfig.apiKey.includes('Placeholder');
+  !activeConfig.apiKey ||
+  activeConfig.apiKey.includes('Placeholder');
 
-// Initialize Firebase safely
-export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// 2. Safe initialization with fail-soft resilience
+let appInstance: any;
+let authInstance: any;
+let dbInstance: any;
+let storageInstance: any;
+let isInitializedSuccessfully = false;
+
+try {
+  appInstance = getApps().length > 0 ? getApp() : initializeApp(activeConfig);
+  authInstance = getAuth(appInstance);
+  dbInstance = getFirestore(appInstance);
+  storageInstance = getStorage(appInstance);
+  isInitializedSuccessfully = true;
+} catch (err) {
+  console.warn('Firebase initialization notice (running in local-resilient offline mode):', err);
+  // Fallback stub to prevent runtime errors if SDK encounters restricted environment
+  appInstance = (getApps().length > 0 ? getApp() : null) as any;
+  authInstance = null as any;
+  dbInstance = null as any;
+  storageInstance = null as any;
+}
+
+export const app = appInstance;
+export const auth = authInstance;
+export const db = dbInstance;
+export const storage = storageInstance;
+
+export const isFirebaseLive = (): boolean => {
+  return isInitializedSuccessfully && !isDemoMode && Boolean(db);
+};
+
+export const getFirebaseConnectionInfo = () => {
+  return {
+    isConfigured: Boolean(activeConfig.apiKey && activeConfig.projectId),
+    isLive: isFirebaseLive(),
+    projectId: activeConfig.projectId || 'campusaccord',
+    authDomain: activeConfig.authDomain || 'campusaccord.firebaseapp.com',
+    storageBucket: activeConfig.storageBucket || 'campusaccord.firebasestorage.app',
+    status: isFirebaseLive() ? 'connected' : 'local_fallback',
+  };
+};
 
 // Analytics support check
 export let analytics: any = null;
-if (typeof window !== 'undefined') {
-  isSupported().then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(app);
-    }
-  }).catch(() => {});
+if (typeof window !== 'undefined' && appInstance) {
+  isSupported()
+    .then((supported) => {
+      if (supported) {
+        analytics = getAnalytics(appInstance);
+      }
+    })
+    .catch(() => {});
 }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ArrowUpRight,
   Clock,
@@ -22,6 +22,11 @@ import {
   ArrowRight,
   Activity,
   Award,
+  Database,
+  Cloud,
+  CheckSquare,
+  Square,
+  RefreshCw,
 } from 'lucide-react';
 import { Ticket, UserProfile, TicketCategory, TicketStatus } from '../types';
 import {
@@ -30,6 +35,9 @@ import {
   formatRelativeTime,
 } from '../utils/formatters';
 import { DEMO_USERS } from '../services/mockData';
+import { aiService, AiHistoryPeriodStatus } from '../services/aiService';
+import { firestoreService } from '../services/firestoreService';
+import { dataStore } from '../services/dataStore';
 
 interface StaffDashboardProps {
   tickets: Ticket[];
@@ -57,6 +65,49 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   const [filterStatus, setFilterStatus] = useState<string>('All');
   const [filterPriority, setFilterPriority] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // AI Period History Status State
+  const [aiStatusReport, setAiStatusReport] = useState<AiHistoryPeriodStatus | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [completedActions, setCompletedActions] = useState<string[]>([]);
+
+  // Firebase Sync State
+  const [isSyncingFirebase, setIsSyncingFirebase] = useState<boolean>(false);
+  const [firebaseSyncNotice, setFirebaseSyncNotice] = useState<string | null>(null);
+
+  // Trigger AI analysis when timeRange or tickets changes
+  const runAiPeriodAnalysis = async (range: TimeRange = timeRange) => {
+    setIsAiLoading(true);
+    try {
+      const report = await aiService.generatePeriodHistoryStatus(range, tickets);
+      setAiStatusReport(report);
+    } catch (err) {
+      console.warn('AI period history generation notice:', err);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    runAiPeriodAnalysis(timeRange);
+  }, [timeRange, tickets.length]);
+
+  // Sync all data to Cloud Firestore
+  const handleSyncToFirebase = async () => {
+    setIsSyncingFirebase(true);
+    setFirebaseSyncNotice(null);
+    try {
+      const communities = dataStore.getCommunities();
+      const memberships = dataStore.getMemberships();
+      const res = await firestoreService.syncAllToFirestore(tickets, communities, memberships);
+      setFirebaseSyncNotice(res.message);
+      setTimeout(() => setFirebaseSyncNotice(null), 8000);
+    } catch (err: any) {
+      setFirebaseSyncNotice(`Firebase sync notice: ${err?.message || 'Data safely stored locally'}`);
+    } finally {
+      setIsSyncingFirebase(false);
+    }
+  };
 
   // 1. Filter tickets by selected timeframe
   const periodTickets = useMemo(() => {
@@ -372,6 +423,210 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
             <span>Students assisted</span>
           </div>
         </div>
+      </div>
+
+      {/* ---------------------------------------------------------------------- */}
+      {/* 2.5 Firebase Cloud Storage Status & Live Sync Bar                      */}
+      {/* ---------------------------------------------------------------------- */}
+      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/30 rounded-3xl p-4 sm:p-5 shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-white border border-emerald-300 shadow-sm flex items-center justify-center flex-shrink-0">
+            <Database className="w-5 h-5 text-emerald-700" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-sm text-gray-900 tracking-tight">
+                Firebase Cloud Firestore Persistence
+              </span>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                Project: {firestoreService.getStatus().projectId}
+              </span>
+            </div>
+            <p className="text-xs text-mocha-700 mt-0.5">
+              Dual-layer architecture: Real-time Cloud Firestore synchronization + local offline resilience for campus fault tracking.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 self-start md:self-center">
+          <button
+            onClick={handleSyncToFirebase}
+            disabled={isSyncingFirebase}
+            className="flex items-center gap-2 px-4 py-2 bg-[#16A34A] hover:bg-[#22C55E] text-white text-xs font-extrabold rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            <Cloud className={`w-3.5 h-3.5 ${isSyncingFirebase ? 'animate-bounce' : ''}`} />
+            <span>{isSyncingFirebase ? 'Syncing to Cloud...' : 'Sync All to Firestore'}</span>
+          </button>
+        </div>
+      </div>
+
+      {firebaseSyncNotice && (
+        <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs font-bold text-emerald-900 flex items-center justify-between animate-sonner">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>{firebaseSyncNotice}</span>
+          </div>
+          <button onClick={() => setFirebaseSyncNotice(null)} className="text-emerald-700 hover:text-emerald-900">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------------------------- */}
+      {/* 2.6 AI Operational Intelligence & History Status (7d / 30d with Gemini) */}
+      {/* ---------------------------------------------------------------------- */}
+      <div className="bg-white rounded-3xl border border-mocha-200/90 shadow-subtle p-5 sm:p-6 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-mocha-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-5 h-5 text-purple-700 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-extrabold text-gray-900 tracking-tight">
+                  AI Operational Intelligence & Diagnostic Status
+                </h2>
+                <span className="text-[10px] font-mono font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">
+                  Gemini 2.5 Flash
+                </span>
+              </div>
+              <p className="text-xs text-mocha-600 mt-0.5">
+                Automated multi-factor evaluation of velocity, failure clusters, and preventive directives for {timeRange === '7d' ? 'Last 7 Days' : timeRange === '30d' ? 'Past 1 Month' : 'All-Time Record'}.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {aiStatusReport && (
+              <span className={`text-xs font-mono font-extrabold px-3 py-1 rounded-xl border ${
+                aiStatusReport.healthScore >= 90
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : aiStatusReport.healthScore >= 75
+                  ? 'bg-blue-50 text-blue-800 border-blue-200'
+                  : 'bg-amber-50 text-amber-800 border-amber-200'
+              }`}>
+                Health Score: {aiStatusReport.healthScore}/100 • {aiStatusReport.healthStatus}
+              </span>
+            )}
+
+            <button
+              onClick={() => runAiPeriodAnalysis(timeRange)}
+              disabled={isAiLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors disabled:opacity-50 cursor-pointer active:scale-95"
+              title="Refresh AI Analysis"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} />
+              <span>{isAiLoading ? 'Analyzing...' : 'Re-Run AI'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* AI Executive Summary Block */}
+        {aiStatusReport && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50/70 via-indigo-50/50 to-blue-50/60 border border-purple-200/80">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-900 block mb-1">
+                Executive Synthesis ({aiStatusReport.periodLabel}):
+              </span>
+              <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-medium">
+                "{aiStatusReport.executiveSummary}"
+              </p>
+            </div>
+
+            {/* 3 Core Analytical Diagnosis Tiles */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Tile 1: Velocity Diagnosis */}
+              <div className="p-4 rounded-2xl bg-white border border-mocha-200/90 shadow-subtle space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-mono font-bold text-mocha-400">
+                    Resolution Velocity
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {aiStatusReport.velocityDiagnosis.status}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-mono font-extrabold text-gray-900">
+                    {aiStatusReport.velocityDiagnosis.avgTurnaroundHours}
+                  </span>
+                  <span className="text-xs font-semibold text-mocha-600">
+                    avg turnaround • {aiStatusReport.velocityDiagnosis.resolutionRate}% closed
+                  </span>
+                </div>
+                <p className="text-xs text-mocha-600 leading-relaxed">
+                  {aiStatusReport.velocityDiagnosis.description}
+                </p>
+              </div>
+
+              {/* Tile 2: Hotspot & Pattern Clusters */}
+              <div className="p-4 rounded-2xl bg-white border border-mocha-200/90 shadow-subtle space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-mono font-bold text-mocha-400">
+                    Recurring Failure Hotspots
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                    {aiStatusReport.repetitiveHotspots.length} Clusters
+                  </span>
+                </div>
+                <div className="space-y-1.5 pt-1">
+                  {aiStatusReport.repetitiveHotspots.slice(0, 3).map((h, i) => (
+                    <div key={i} className="text-xs p-2 rounded-xl bg-mocha-50/70 border border-mocha-100 flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <strong className="text-gray-900 block truncate text-[11px]">{h.location}</strong>
+                        <span className="text-[10px] text-mocha-600 block line-clamp-1">{h.riskSummary}</span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded flex-shrink-0">
+                        {h.incidentCount} tkt
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tile 3: AI Preventive Directives */}
+              <div className="p-4 rounded-2xl bg-white border border-mocha-200/90 shadow-subtle space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-mono font-bold text-mocha-400">
+                    AI Preventive Directives
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                    Action Plan
+                  </span>
+                </div>
+                <div className="space-y-1.5 pt-1">
+                  {aiStatusReport.proactiveActions.map((action, i) => {
+                    const isDone = completedActions.includes(action.title);
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setCompletedActions(prev => 
+                            isDone ? prev.filter(t => t !== action.title) : [...prev, action.title]
+                          );
+                        }}
+                        className={`text-xs p-2 rounded-xl border transition-all cursor-pointer flex items-start gap-2 ${
+                          isDone 
+                            ? 'bg-emerald-50/60 border-emerald-300 line-through opacity-70' 
+                            : 'bg-mocha-50/70 border-mocha-100 hover:border-purple-300'
+                        }`}
+                      >
+                        <div className="mt-0.5 flex-shrink-0 text-purple-700">
+                          {isDone ? <CheckSquare className="w-3.5 h-3.5 text-emerald-600" /> : <Square className="w-3.5 h-3.5 text-mocha-400" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <strong className="text-gray-900 block text-[11px] truncate">{action.title}</strong>
+                          <span className="text-[10px] text-mocha-600 block leading-tight">{action.action}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ---------------------------------------------------------------------- */}

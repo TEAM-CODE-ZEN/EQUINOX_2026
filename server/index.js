@@ -110,6 +110,90 @@ Respond strictly with valid JSON conforming to this schema:
       fallbackAvailable: true,
     });
   }
+// AI 7-Day & 30-Day History Status Analysis
+app.post('/api/analyze-period-history', async (req, res) => {
+  const { timeRange, ticketsSummary, tickets } = req.body;
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return res.status(503).json({
+      error: 'Gemini API key is not configured on server. Falling back to client-side AI analysis.',
+      fallbackAvailable: true,
+    });
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+
+    const systemInstruction = `
+You are the AI Campus Operations Intelligence Analyst for CampusAccord.
+Analyze the incident history for the timeframe: ${timeRange === '7d' ? 'Last 7 Days' : timeRange === '30d' ? 'Past 1 Month (30 Days)' : 'All Time'}.
+Assess velocity, recurring failure hotspots, department performance, and preventive maintenance actions.
+
+Respond strictly with valid JSON conforming to this schema:
+{
+  "executiveSummary": "Concise 2-3 sentence executive assessment of campus facility performance and incident trends in this period.",
+  "healthScore": number (0-100 based on resolution rate, SLA compliance, and backlog),
+  "healthStatus": "Optimal" | "Stable" | "Action Required" | "Critical",
+  "velocityDiagnosis": {
+    "status": "Fast Resolution" | "Moderate" | "Bottleneck Warning",
+    "avgTurnaroundHours": "string e.g. 2.8h",
+    "resolutionRate": number,
+    "description": "Short explanation of dispatch velocity and bottleneck areas."
+  },
+  "repetitiveHotspots": [
+    {
+      "location": "Location name",
+      "incidentCount": number,
+      "trend": "Increasing" | "Stable" | "Improving",
+      "riskSummary": "Specific failure pattern e.g. water cooler valve failure or Wi-Fi AP packet loss"
+    }
+  ],
+  "departmentPerformance": [
+    {
+      "department": "Maintenance" | "Mess & Dining" | "Internet & IT" | "Security" | "Hostel Welfare",
+      "activeCount": number,
+      "resolvedCount": number,
+      "slaCompliance": number,
+      "healthTag": "Excellent" | "Good" | "Needs Attention"
+    }
+  ],
+  "proactiveActions": [
+    {
+      "priority": "Immediate" | "Scheduled" | "Monitoring",
+      "title": "Action title",
+      "action": "Specific preventive maintenance directive",
+      "assignedDepartment": "Department name"
+    }
+  ]
+}
+`;
+
+    const contents = [
+      { text: `Incident Summary for ${timeRange}:\n${JSON.stringify(ticketsSummary || tickets?.slice(0, 25) || {})}` }
+    ];
+
+    const response = await ai.models.generateContent({
+      model,
+      contents,
+      config: {
+        systemInstruction,
+        temperature: 0.2,
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const text = response.text();
+    const result = JSON.parse(text);
+    return res.json(result);
+  } catch (error) {
+    console.error('Gemini period history analysis error:', error);
+    return res.status(500).json({
+      error: 'AI period analysis failed: ' + (error?.message || 'Unknown error'),
+      fallbackAvailable: true,
+    });
+  }
 });
 
 // Admin Bootstrap Provisioning
